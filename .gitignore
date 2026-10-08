@@ -1,0 +1,38 @@
+/.horilla-hr
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Java / Spring Boot
+/backend/target/
+/backend/build/
+/backend/.gradle/
+*.class
+*.log
+
+# Node / React
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.vite/
+!/frontend/.env.example
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Runtime uploads / generated files
+uploads/
+media/
+staticfiles/
+
+# Database
+*.sqlite3
+*.db
+hrms-offline-images.tar
+/backups/

@@ -1,0 +1,95 @@
+services:
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${HRMS_DB_NAME:-hrms}
+      POSTGRES_USER: ${HRMS_DB_USERNAME:-hrms}
+      POSTGRES_PASSWORD: ${HRMS_DB_PASSWORD:?Set up the project before starting}
+    volumes:
+      - hrms_postgres_data:/var/lib/postgresql
+    networks:
+      - hrms_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  database-backup:
+    image: postgres:18
+    restart: unless-stopped
+    user: "0:0"
+    entrypoint: ["/bin/sh", "/usr/local/bin/backup-loop.sh"]
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: ${HRMS_DB_NAME:-hrms}
+      PGUSER: ${HRMS_DB_USERNAME:-hrms}
+      PGPASSWORD: ${HRMS_DB_PASSWORD:?Set up the project before starting}
+    volumes:
+      - ./scripts/database-backup-loop.sh:/usr/local/bin/backup-loop.sh:ro
+      - ./backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - hrms_internal
+
+  backend:
+    image: hrms-backend:local
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      HRMS_DB_URL: jdbc:postgresql://postgres:5432/${HRMS_DB_NAME:-hrms}
+      HRMS_DB_USERNAME: ${HRMS_DB_USERNAME:-hrms}
+      HRMS_DB_PASSWORD: ${HRMS_DB_PASSWORD:?Set up the project before starting}
+      HRMS_DEMO_DEVICE_TOKEN_HASH: ${HRMS_DEMO_DEVICE_TOKEN_HASH:?Set up the project before starting}
+      HRMS_JWT_SECRET: ${HRMS_JWT_SECRET:?Set up the project before starting}
+      HRMS_BOOTSTRAP_TOKEN: ${HRMS_BOOTSTRAP_TOKEN:?Set up the project before starting}
+      HRMS_ACCESS_TOKEN_SECONDS: ${HRMS_ACCESS_TOKEN_SECONDS:-900}
+      HRMS_CORS_ALLOWED_ORIGINS: ${HRMS_CORS_ALLOWED_ORIGINS:-http://localhost:8080}
+      HRMS_SERVER_PORT: 8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - hrms_internal
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 45s
+
+  frontend:
+    image: hrms-frontend:local
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /
+    restart: unless-stopped
+    ports:
+      - "${HRMS_HTTP_PORT:-8080}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - hrms_internal
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+networks:
+  hrms_internal:
+    driver: bridge
+
+volumes:
+  hrms_postgres_data:

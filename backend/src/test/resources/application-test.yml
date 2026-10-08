@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:hrms_test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    placeholders:
+      demo_device_token_hash: e76b6359af8cbe298e362c0e179b90c627cef49db0e9aeeca55175ef799c6b37
+
+hrms:
+  auth:
+    jwt-secret: test-jwt-secret-that-is-at-least-32-bytes-long
+    bootstrap-token: test-bootstrap-token-that-is-at-least-32-bytes

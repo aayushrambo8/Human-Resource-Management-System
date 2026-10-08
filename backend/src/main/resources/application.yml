@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: hrms-backend
+  datasource:
+    url: ${HRMS_DB_URL:jdbc:postgresql://localhost:5432/hrms}
+    username: ${HRMS_DB_USERNAME:hrms}
+    password: ${HRMS_DB_PASSWORD}
+  flyway:
+    enabled: true
+    placeholders:
+      demo_device_token_hash: ${HRMS_DEMO_DEVICE_TOKEN_HASH}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: ${HRMS_SERVER_PORT:8080}
+
+hrms:
+  web:
+    allowed-origins: ${HRMS_CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  biometric:
+    token-header: X-Device-Token
+  auth:
+    jwt-secret: ${HRMS_JWT_SECRET}
+    bootstrap-token: ${HRMS_BOOTSTRAP_TOKEN}
+    access-token-seconds: ${HRMS_ACCESS_TOKEN_SECONDS:900}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
