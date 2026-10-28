@@ -6,9 +6,10 @@ Maintained per AGENTS.md §14. All results below were **actually executed** on t
 
 - Host: Windows, Node v24.18.0, npm 11.16.0
 - Branch: `main`, worktree at `67f6a9e` + local commits (see below)
-- Backend availability: **not running this session** — live API integration remains unverified;
-  all API-facing behavior verified only against source-read contracts
-  (`docs/backend-integration-contract.md`).
+- Backend availability: **running this session** on `:8080` (H2/test profile via
+  runtime env vars — see Phase B); live API integration verified direct and through
+  the Next.js proxy. Source-read contracts in `docs/backend-integration-contract.md`
+  remain the authoritative endpoint/DTO inventory.
 
 ## Stage 0 — repository baseline (2026-10-28)
 
@@ -156,6 +157,47 @@ zero console errors. Login/normal flow unaffected (regression-checked).
 ### Verification trio after the gate change
 
 `npm run lint` → exit 0 (same 9 pre-existing warnings, no new) · `npx tsc --noEmit` → exit 0 · `npm run build` → success (11 pages, `/employees/[id]` dynamic).
+
+## Phase B (build) — attendance module (2026-10-28)
+
+Scope: make the attendance page honest and role-safe against the live backend, and
+verify its pagination with real data. Backend untouched (only test data seeded via
+the public device-punch endpoint).
+
+### Test data seeded (no backend changes)
+
+25 punches posted to `POST /api/biometric/attendance` with header
+`X-Device-Token: change-me-device-token` (the demo device token the backend's own
+test suite uses), all for `BIO-001` / `EMP001`, spread across Oct 10–14, 2026 with
+alternating IN/OUT. API pagination confirmed: `page=0` → 20 items, `page=1` → 5 items,
+`totalElements=25`, `totalPages=2`.
+
+### Changes to `frontend/src/app/(dashboard)/attendance/page.tsx`
+
+- **Role gate**: `enabled: canReadAttendance` on the query + a
+  "Restricted to HR & Admin" `EmptyState` for EMPLOYEE. Before this, a direct visit
+  to `/attendance` as EMPLOYEE fired a doomed request that the backend answers with
+  **401** (not 403), which `getErrorMessage` maps to a misleading "session expired".
+- **Honest gap note**: below the table — "Showing page N of M (X records).
+  Date-range filtering is not available — the backend endpoint supports pagination
+  only." (`GET /api/attendance` accepts only `?page`/`?size`; no server-side date
+  filter exists, so none is faked client-side either.)
+
+### Live browser verification (admin + employee accounts)
+
+| Check | Result |
+|---|---|
+| Page 1 with seeded data | ✅ 20 rows rendered (Demo Employee / EMP001 / BIO-001 / IN-OUT badge / date / time), pagination visible, gap note reads "Showing page 1 of 2 (25 records)…" |
+| Page 2 via Next button | ✅ 5 rows, note updates to "page 2 of 2", **Next disabled on last page**, Previous enabled, 0 console errors |
+| EMPLOYEE direct visit to `/attendance` | ✅ "Restricted to HR & Admin" panel with explanation; **zero API calls fired** (query `enabled`-gated), 0 console errors |
+| Verification trio | ✅ `npm run lint` exit 0 · `npx tsc --noEmit` exit 0 · `npm run build` success (attendance route 1.38 kB) |
+
+### Environment note
+
+Running `npm run build` while `npm run dev` is active corrupts the shared `.next`
+directory (ENOENT on `app-build-manifest.json`, resulting 500s on every route).
+Reproduced and worked around: stop the dev server → clear `.next` → restart.
+Builds in this report were run with the dev server stopped.
 
 ## Not yet verified (pending phases)
 

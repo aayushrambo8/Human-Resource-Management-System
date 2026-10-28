@@ -3,15 +3,25 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { attendanceApi } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 import { Icon } from '@/components/ui/Icon';
 import { EmptyState, LoadingState, ErrorState } from '@/components/ui/States';
 import { Pagination } from '@/components/ui/Pagination';
 import { formatDate, formatTime, initials } from '@/lib/format';
 
 export default function AttendancePage() {
+  const { roles } = useAuth();
+  // GET /api/attendance requires attendance:read (ADMIN/HR). EMPLOYEE receives
+  // 401 from the backend, so gate the query and render a restricted panel
+  // instead of firing a request we know will fail.
+  const canReadAttendance = roles.includes('ADMIN') || roles.includes('HR');
   const [page, setPage] = useState(0);
   const size = 20;
-  const attendance = useQuery({ queryKey: ['attendance', page, size], queryFn: () => attendanceApi.list(page, size) });
+  const attendance = useQuery({
+    queryKey: ['attendance', page, size],
+    queryFn: () => attendanceApi.list(page, size),
+    enabled: canReadAttendance,
+  });
 
   return (
     <div className="dashboard">
@@ -24,7 +34,13 @@ export default function AttendancePage() {
 
       <section aria-label="Attendance records">
         <article className="island table-panel">
-          {attendance.isLoading ? (
+          {!canReadAttendance ? (
+            <EmptyState
+              title="Restricted to HR & Admin"
+              description="Attendance records are managed by HR. Contact your administrator if you need access."
+              icon="clock"
+            />
+          ) : attendance.isLoading ? (
             <LoadingState label="Loading attendance" />
           ) : attendance.isError ? (
             <ErrorState message="Failed to load attendance" onRetry={() => void attendance.refetch()} />
@@ -77,6 +93,17 @@ export default function AttendancePage() {
             <EmptyState title="No attendance records" description="Records will appear here when employees check in." icon="calendar" />
           )}
         </article>
+
+        {/* Honest backend gap: GET /api/attendance accepts only ?page & ?size —
+            there is no server-side date-range filter, so any date filtering
+            would have to happen client-side over the current page. Documented
+            rather than faked. */}
+        {canReadAttendance && attendance.data && attendance.data.content.length > 0 && (
+          <p className="muted" style={{ marginTop: 12, fontSize: 13 }}>
+            Showing page {page + 1} of {attendance.data.totalPages} ({attendance.data.totalElements} records).
+            Date-range filtering is not available — the backend endpoint supports pagination only.
+          </p>
+        )}
       </section>
     </div>
   );
