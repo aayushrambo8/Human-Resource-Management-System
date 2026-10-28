@@ -102,6 +102,17 @@ export function AppShell({ children }: { children: ReactNode }) {
   const userInitials = initials(email.split('@')[0] || 'U');
   const roleLabel = roles.join(' · ') || 'Signed in';
 
+  // Client-side gate (decision 2026-10-28, hardened during Phase C): render
+  // nothing while unauthenticated so protected page components never mount.
+  // Without this, a cold load of a protected route painted the shell for one
+  // frame and fired doomed API requests (e.g. /api/leaves) that 401'd, which
+  // the axios interceptor surfaced as a misleading "session expired" prompt.
+  // The redirect runs in the effect below; the Spring Boot API independently
+  // enforces authentication on every request.
+  if (!isAuthenticated) {
+    return <div style={{ minHeight: '100vh' }} />;
+  }
+
   return (
     <div className="app-shell">
       {sidebarOpen && (

@@ -119,9 +119,45 @@ same table above now passes through the proxy.
 The (dashboard) pages themselves render client-side after auth, so their visual state is
 confirmed by the successful API calls above rather than by server HTML.
 
+## Phase C — browser verification (2026-10-28)
+
+Full-stack session in a real Chromium browser (OpenCode desktop). Both servers running:
+backend on `:8080` (H2/test env), frontend dev on `:3000`. A second account
+(`employee@northstar.local`, role EMPLOYEE, linked to EMP001) was created via
+`POST /api/accounts` for role-matrix testing. Backend files remain untouched.
+
+| Check | Result |
+|---|---|
+| Console errors/warnings | ✅ **0 errors, 0 warnings** on every page (login, dashboard, employees, employee detail, departments, attendance, biometric, leave, settings) — no hydration mismatch, no React warnings |
+| Login (ADMIN) | ✅ Full shell rendered; dashboard KPIs pulled live data: Total Employees **1**, Pending Leave **0**, New Hires 30d **1**, Departments **1**; headcount bar showed Administration 100% |
+| Employee detail (`/employees/[id]`) | ✅ The Stage 0-repaired dynamic route renders all fields (name, code, department, status, joined, email, phone) from a live UUID |
+| Theme toggle | ✅ Started **dark** (system preference, `stored=null`); toggle → **light** (`stored="light"`); **persisted across reload**; class + `colorScheme` both update; no flash/mismatch |
+| Empty states | ✅ leave/attendance/biometric show honest empty states against the live (empty) tables |
+| Role matrix (EMPLOYEE) | ✅ Nav reduced to **Dashboard, Leave, Settings** (directory modules hidden); dashboard switched to role-aware KPIs (**My Leave Requests 0**, **My Pending 0**) + "Directory and attendance data are managed by HR" note; People Pulse scoped to own records |
+| API role enforcement | ✅ EMPLOYEE → **401** on `/employees`, `/departments`, `/attendance`, `/biometric/logs`; **200** on `/leaves` (own only). UI never fires the denied requests (gated by `enabled`/nav filtering) |
+| Logout | ✅ `POST /api/auth/logout` → **204**; sessionStorage (token/roles/email) cleared; redirect to `/login`; sidebar gone |
+| Mobile drawer logic | ✅ Open adds `sidebar-open` + renders scrim + close button; close removes them. (Visual breakpoint not testable — no viewport-resize tool; responsive CSS confirmed present at 4 breakpoints: 1200/900/700/480px) |
+
+### Bug found & fixed by browser testing (auth gate cold-load race)
+
+Before the fix, a **logged-out cold load of a protected route** (e.g. visiting `/`
+directly) painted the dashboard for one frame — the AppShell gate ran in a `useEffect`,
+which executes *after* first paint — so the always-enabled `/api/leaves` query fired,
+got **401**, and the axios interceptor dispatched `session-expired`, landing the user on
+`/login?expired=true` with a misleading "Your session has expired" message for someone
+who was simply never signed in. No data leaked (401), but it wasted API calls and
+presented a confusing message.
+
+Fix: `AppShell` now renders a neutral placeholder and **never mounts protected children
+while unauthenticated** (early return before the shell). Verified after fix: cold load of
+`/` while logged out → clean `/login` (no `?expired=true`), **zero API XHR calls fired**,
+zero console errors. Login/normal flow unaffected (regression-checked).
+
+### Verification trio after the gate change
+
+`npm run lint` → exit 0 (same 9 pre-existing warnings, no new) · `npx tsc --noEmit` → exit 0 · `npm run build` → success (11 pages, `/employees/[id]` dynamic).
+
 ## Not yet verified (pending phases)
 
-- Browser-level hydration/console checks, theme toggle persistence, and responsive
-  layouts (requires a real browser session) — Phase C.
-- Role-matrix behavior against the live backend (EMPLOYEE 403s on directory modules)
-  using a non-admin account — Phase C.
+- Visual responsive rendering at real mobile/tablet viewports (no viewport-emulation tool available in this environment) — CSS breakpoints confirmed present; drawer interaction logic verified.
+- Lighthouse/accessibility audit pass — optional polish phase.
