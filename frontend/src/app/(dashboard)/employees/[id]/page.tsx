@@ -4,8 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { employeeApi } from '@/lib/api';
-import { Icon } from '@/components/ui/Icon';
+import { Icon, type IconName } from '@/components/ui/Icon';
 import { EmptyState, LoadingState, ErrorState } from '@/components/ui/States';
+import { Island, IslandHeader, IslandBody } from '@/components/ui/Island';
 import { formatDate, initials } from '@/lib/format';
 
 export default function EmployeeDetailPage() {
@@ -31,7 +32,7 @@ export default function EmployeeDetailPage() {
       </header>
 
       <section aria-label="Employee details">
-        <article className="island">
+        <Island>
           <IslandBody className="profile-hero">
             <div className="profile-avatar" aria-hidden="true">{initials(`${emp.firstName} ${emp.lastName}`)}</div>
             <div className="profile-intro">
@@ -39,9 +40,9 @@ export default function EmployeeDetailPage() {
               <span>{emp.employeeCode} · {emp.departmentName ?? 'Unassigned'}</span>
             </div>
           </IslandBody>
-        </article>
+        </Island>
 
-        <article className="island">
+        <Island>
           <IslandHeader>
             <h2>Details</h2>
           </IslandHeader>
@@ -53,28 +54,16 @@ export default function EmployeeDetailPage() {
             <InfoRow icon="calendar" label="Joined" value={formatDate(emp.joiningDate)} />
             <InfoRow icon="grid" label="Employee Code" value={emp.employeeCode} />
           </IslandBody>
-        </article>
+        </Island>
       </section>
     </div>
   );
 }
 
-function Island({ children }: { children: React.ReactNode }) {
-  return <article className="island">{children}</article>;
-}
-
-function IslandHeader({ children }: { children: React.ReactNode }) {
-  return <header className="island-header" style={{ paddingBottom: 12 }}>{children}</header>;
-}
-
-function IslandBody({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <div className={`island-body ${className}`}>{children}</div>;
-}
-
-function InfoRow({ icon, label, value }: { icon: string; label: string; value: React.ReactNode }) {
+function InfoRow({ icon, label, value }: { icon: IconName; label: string; value: React.ReactNode }) {
   return (
     <div className="info-row">
-      <div className="info-icon"><Icon name={icon as any} size={16} /></div>
+      <div className="info-icon"><Icon name={icon} size={16} /></div>
       <div>
         <span>{label}</span>
         <strong>{value}</strong>

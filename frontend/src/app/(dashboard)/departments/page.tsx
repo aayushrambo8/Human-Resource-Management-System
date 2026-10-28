@@ -1,7 +1,6 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
 import { departmentApi } from '@/lib/api';
 import { Icon } from '@/components/ui/Icon';
 import { EmptyState, LoadingState, ErrorState } from '@/components/ui/States';
@@ -15,11 +14,6 @@ export default function DepartmentsPage() {
         <div>
           <p className="dashboard-date">ORGANIZATION</p>
           <h1 className="dashboard-title">Departments</h1>
-        </div>
-        <div className="dashboard-actions">
-          <Link className="btn btn-primary" href="/departments/new">
-            <Icon name="plus" size={16} /> Add Department
-          </Link>
         </div>
       </header>
 
@@ -38,10 +32,7 @@ export default function DepartmentsPage() {
                   </div>
                   <div className="department-code">{dept.code}</div>
                   <h2>{dept.name}</h2>
-                  <p>{dept.companyCode} · {dept.companyCode}</p>
-                  <div className="department-card-footer">
-                    <span>View details <Icon name="chevron" size={14} /></span>
-                  </div>
+                  <p>{dept.companyCode}</p>
                 </article>
               ))}
             </div>

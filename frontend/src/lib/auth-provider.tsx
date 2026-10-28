@@ -5,10 +5,13 @@ import { useRouter } from 'next/navigation';
 import { authApi } from '@/lib/api';
 import { AuthContext, useAuth } from '@/lib/auth-context';
 import {
+  clearSessionRoles,
   clearTokens,
   getSessionEmail,
+  getSessionRoles,
   hasSession,
   saveSessionEmail,
+  saveSessionRoles,
   saveTokens,
 } from '@/lib/api-client';
 import type { TokenResponse } from '@/lib/types';
@@ -16,20 +19,35 @@ import type { TokenResponse } from '@/lib/types';
 export function ClientAuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState('');
+  const [roles, setRoles] = useState<string[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     setIsAuthenticated(hasSession());
     setEmail(getSessionEmail());
+    setRoles(getSessionRoles());
     setHydrated(true);
   }, []);
 
   const acceptSession = useCallback((tokens: TokenResponse) => {
     saveTokens(tokens);
     saveSessionEmail(tokens.email);
+    saveSessionRoles(tokens.roles);
     setEmail(tokens.email);
+    setRoles(tokens.roles);
     setIsAuthenticated(true);
+  }, []);
+
+  const clearSession = useCallback(() => {
+    clearTokens();
+    clearSessionRoles();
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('hrms.email');
+    }
+    setEmail('');
+    setRoles([]);
+    setIsAuthenticated(false);
   }, []);
 
   const login = useCallback(
@@ -45,21 +63,15 @@ export function ClientAuthProvider({ children }: { children: ReactNode }) {
     try {
       if (refreshToken) await authApi.logout(refreshToken);
     } finally {
-      clearTokens();
-      if (typeof window !== 'undefined') sessionStorage.removeItem('hrms.email');
-      setIsAuthenticated(false);
-      setEmail('');
+      clearSession();
       router.push('/login');
       router.refresh();
     }
-  }, [router]);
+  }, [clearSession, router]);
 
   useEffect(() => {
     const handleExpired = () => {
-      clearTokens();
-      if (typeof window !== 'undefined') sessionStorage.removeItem('hrms.email');
-      setIsAuthenticated(false);
-      setEmail('');
+      clearSession();
       router.push('/login?expired=true');
       router.refresh();
     };
@@ -67,9 +79,13 @@ export function ClientAuthProvider({ children }: { children: ReactNode }) {
       window.addEventListener('hrms:session-expired', handleExpired);
       return () => window.removeEventListener('hrms:session-expired', handleExpired);
     }
-  }, [router]);
+    return undefined;
+  }, [clearSession, router]);
 
-  const value = useMemo(() => ({ email, isAuthenticated, login, logout }), [email, isAuthenticated, login, logout]);
+  const value = useMemo(
+    () => ({ email, roles, isAuthenticated, login, logout }),
+    [email, roles, isAuthenticated, login, logout],
+  );
 
   if (!hydrated) return <div style={{ minHeight: '100vh' }} />;
 

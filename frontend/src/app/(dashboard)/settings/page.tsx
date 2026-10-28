@@ -72,7 +72,7 @@ export default function SettingsPage() {
           </div>
           <div className="settings-row">
             <strong>Backend</strong>
-            <span>Spring Boot 3 + PostgreSQL</span>
+            <span>Spring Boot 4 + PostgreSQL</span>
           </div>
         </article>
       </section>

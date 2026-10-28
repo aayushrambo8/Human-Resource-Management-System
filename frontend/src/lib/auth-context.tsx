@@ -1,7 +1,9 @@
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext } from 'react';
 
 export interface AuthContextValue {
   email: string;
+  /** Role codes from the login response (ADMIN, HR, EMPLOYEE). UI gating only — the API enforces authorization. */
+  roles: string[];
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;

@@ -45,6 +45,31 @@ export function saveSessionEmail(email: string) {
   }
 }
 
+const ROLES_KEY = 'hrms.roles';
+
+export function saveSessionRoles(roles: string[]) {
+  if (typeof window !== 'undefined') {
+    sessionStorage.setItem(ROLES_KEY, JSON.stringify(roles));
+  }
+}
+
+export function getSessionRoles(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = sessionStorage.getItem(ROLES_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((role): role is string => typeof role === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+export function clearSessionRoles() {
+  if (typeof window !== 'undefined') {
+    sessionStorage.removeItem(ROLES_KEY);
+  }
+}
+
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const token = sessionStorage.getItem(ACCESS_TOKEN_KEY);

@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { Icon } from '@/components/ui/Icon';
-import { EmptyState } from '@/components/ui/States';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');

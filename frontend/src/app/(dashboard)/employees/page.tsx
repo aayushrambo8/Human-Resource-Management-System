@@ -17,11 +17,6 @@ export default function EmployeesPage() {
           <p className="dashboard-date">DIRECTORY</p>
           <h1 className="dashboard-title">Employees</h1>
         </div>
-        <div className="dashboard-actions">
-          <Link className="btn btn-primary" href="/employees/new">
-            <Icon name="plus" size={16} /> Add Employee
-          </Link>
-        </div>
       </header>
 
       <section aria-label="Employees list">
