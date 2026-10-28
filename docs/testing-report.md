@@ -56,8 +56,72 @@ All changes in `frontend/` only; backend untouched.
   classes referenced by pages (pagination, department cards, settings rows, profile rows, device
   cells, states) now actually defined.
 
+## Phase B — live backend integration verification (2026-10-28)
+
+The backend was **started for the first time this session** and the full request path
+(browser-independent, via HTTP) was verified. This clears the long-standing
+"live API integration unverified" blocker.
+
+### How the backend was started (no backend files modified)
+
+PostgreSQL is not installed and Docker is unavailable, so the production datasource
+(`jdbc:postgresql://localhost:5432/hrms`) could not be used. The backend's own
+`test` profile is the intended H2 fallback (`MODE=PostgreSQL`, Flyway-enabled), but
+`spring-boot:run` does not put `src/test/resources` on the runtime classpath. The
+H2 datasource + all required secrets were therefore supplied as **runtime environment
+variables using the exact values the backend's own `application-test.yml` defines** —
+no Java, YAML, or build file was touched:
+
+| Variable | Value (from backend's test profile) |
+|---|---|
+| `HRMS_DB_URL` | `jdbc:h2:mem:hrms;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH` |
+| `HRMS_DB_USERNAME` / `HRMS_DB_PASSWORD` | `sa` / (empty) |
+| `HRMS_JWT_SECRET` | `test-jwt-secret-that-is-at-least-32-bytes-long` |
+| `HRMS_BOOTSTRAP_TOKEN` | `test-bootstrap-token-that-is-at-least-32-bytes` |
+| `HRMS_DEMO_DEVICE_TOKEN_HASH` | `e76b6359…c6b37` (the value in the test profile) |
+| `HRMS_CORS_ALLOWED_ORIGINS` | `http://localhost:3000` |
+
+Launch command (test classpath so the test-scoped H2 driver is loadable):
+`.\mvnw.cmd spring-boot:run "-Dspring-boot.run.useTestClasspath=true"` with the above env vars.
+
+**Result:** Spring Boot 4.1.1 started on `:8080`; Flyway applied all **4 migrations** to H2
+(versions 1–4, incl. "seed local development data"); Tomcat up in ~7.7s.
+
+### Endpoint verification — direct (`:8080`) and through the Next.js proxy (`:3000/api/backend`)
+
+Account bootstrapped via `POST /api/auth/bootstrap` (X-Bootstrap-Token) → ADMIN user
+`admin@northstar.local`. Login returns `roles: ["ADMIN"]` and a JWT. All frontend-consumed
+endpoints return **200 OK with the seeded demo data** on both paths:
+
+| Endpoint | Direct :8080 | Via proxy :3000 | Seeded data |
+|---|---|---|---|
+| `GET /api/health` | 200 | 200 | `status: ok, product: custom-hrms` |
+| `POST /api/auth/login` | 200 | 200 | ADMIN JWT + roles |
+| `GET /api/employees` | 200 | 200 | 1 record (Demo Employee / EMP001 / Administration / ACTIVE) |
+| `GET /api/departments` | 200 | 200 | 1 record (Administration / ADMIN / company INST) |
+| `GET /api/attendance` | 200 | 200 | 0 records |
+| `GET /api/leaves` | 200 | 200 | 0 records |
+| `GET /api/biometric/logs` | 200 | 200 | 0 records |
+
+### Bug found & fixed by live verification (the proxy had never actually run before)
+
+`next.config.ts` rewrite destination was `${API}/api/:path*`. Because the axios client
+already uses baseURL `/api/backend` + endpoint paths that begin `/api/`, the captured
+`:path*` is `api/health`, producing `http://localhost:8080/api/**api**/health` — a
+**doubled `/api`**. That path is not in the backend's `permitAll` list, so every proxied
+request returned **401 Unauthorized**, including the public health endpoint. Fixed by
+dropping the redundant `/api/` from the destination (`${API}/:path*`). Re-verified: the
+same table above now passes through the proxy.
+
+### Frontend dev server
+
+`npm run dev` (Next.js 15.5.28 / Turbopack) started on `:3000`; `/login` returns 200.
+The (dashboard) pages themselves render client-side after auth, so their visual state is
+confirmed by the successful API calls above rather than by server HTML.
+
 ## Not yet verified (pending phases)
 
-- Runtime API integration through the `/api/backend` proxy (needs running backend + database) — Phase B.
-- Theme behavior, responsive layouts, and module states in a browser (hydration/console checks) — later phase.
-- Forms and role-matrix verification against the live backend.
+- Browser-level hydration/console checks, theme toggle persistence, and responsive
+  layouts (requires a real browser session) — Phase C.
+- Role-matrix behavior against the live backend (EMPLOYEE 403s on directory modules)
+  using a non-admin account — Phase C.
