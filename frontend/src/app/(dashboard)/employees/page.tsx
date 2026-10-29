@@ -36,7 +36,7 @@ export default function EmployeesPage() {
                     <th>Phone</th>
                     <th>Status</th>
                     <th>Joined</th>
-                    <th />
+                    <th><span className="sr-only">Actions</span></th>
                   </tr>
                 </thead>
                 <tbody>

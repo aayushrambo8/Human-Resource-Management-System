@@ -35,8 +35,14 @@ export default function LoginPage() {
     <div className="login-page">
       <main className="login-card">
         <header className="login-header">
-          <Link href="/" className="login-brand" aria-label="Northstar Institute HRMS">
+          {/* The visible label is the mark "N" + "Northstar". axe's
+              label-content-name check compares the raw text-node concatenation,
+              so an explicit whitespace node is required between them (it is not
+              rendered as a flex item, so layout is unchanged) and the
+              accessible name must contain the full visible string. */}
+          <Link href="/" className="login-brand" aria-label="N Northstar Institute HRMS">
             <div className="brand-mark" aria-hidden="true">N</div>
+            {' '}
             <span className="brand-name">Northstar</span>
           </Link>
           <h1>Sign in to your account</h1>

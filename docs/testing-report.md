@@ -199,7 +199,58 @@ directory (ENOENT on `app-build-manifest.json`, resulting 500s on every route).
 Reproduced and worked around: stop the dev server → clear `.next` → restart.
 Builds in this report were run with the dev server stopped.
 
+## Accessibility audit (axe-core 4.12.0, light + dark) — 2026-10-29
+
+Injected axe-core 4.12.0 into the live browser page (not added to project
+dependencies) and swept all 9 surfaces — the 7 dashboard routes, `/login`, and the
+`/employees/[id]` detail route — in **both** themes. Tag set: `wcag2a, wcag2aa,
+wcag21a, wcag21aa, best-practice`.
+
+**Final result: 0 violations, 0 incomplete on every surface in both themes**
+(the sole `incomplete` is a known axe false-negative — see below).
+
+### Real defects found and fixed (all in `frontend/src/app/globals.css` unless noted)
+
+| # | Surface | Defect | Fix |
+|---|---|---|---|
+| 1 | both | `.info-row span` (descendant selector) also matched a `.status-badge` nested inside the `<strong>` value, overriding its green/amber foreground with `--text-muted` — the ACTIVE pill rendered grey (and got force-uppercased) | scoped to `.info-row > div > span` |
+| 2 | light | `--text-muted` `#7c879c` = 3.3–3.6:1 on light surfaces | → `#606b82` |
+| 3 | light | `--text-faint` `#9aa4b8` = 2.3–2.5:1 | → `#646f88` |
+| 4 | dark | `--text-faint` `#6d7a92` = 3.34–4.21:1 | → `#8492ad` |
+| 5 | light | `--success` `#12805c` = 4.37:1 on `--success-soft` (under AA at 10px) | → `#107554` |
+| 6 | both | `.avatar-3` hardcoded `#3a7bb8` on a 14% tint = 3.76:1 light / 3.23:1 dark, no dark variant | tokenized to `--avatar-3-fg/bg` (`#2f6599` light, `#7db3e4` dark) |
+| 7 | both | `.avatar-0` + `.topbar-avatar` accent-on-own-tint = 3.71:1 dark; 4.36:1 light after tokenizing | tokenized to `--avatar-0-fg/bg`; light fg darkened to `#1d4ed8` (5.57:1 white / 5.32 / 5.11), dark `#7fb0fb` (5.57:1) |
+| 8 | both | `.btn-primary` / `.brand-mark` filled with `--accent`; dark `#3b82f6` only reaches 3.67:1 behind white text | split `--accent` (text) from `--accent-solid` (`#2563eb`, 5.17:1 behind white) for fills |
+| 9 | both | brand links had a `label-content-name-mismatch` (axe concatenates raw text nodes to "NNorthstar…") | added an explicit `{' '}` whitespace node + `aria-label` with the full visible string |
+| 10 | both | employees table actions `<th />` empty → `empty-table-header` | `<th><span className="sr-only">Actions</span></th>` + added the `.sr-only` utility |
+
+### Known axe false-negative (verified manually)
+
+`.island-link-inline` on the dashboard reports `color-contrast` **incomplete** because
+axe cannot resolve the background behind a decorative gradient overlay. Computed
+directly from the live DOM: the link is `#2563eb` on `#ffffff` = **5.17:1** (passes AA).
+Not a real defect.
+
+A second transient — `page-has-heading-one` on `/employees/[id]` — was a scan-timing
+artifact: the `<h1>` renders only after the employee query resolves. Re-scanning after
+data load shows the `<h1>` ("Demo Employee") present, 0 violations.
+
+### Tooling notes
+
+- axe is injected from a CDN into the page at audit time and is **not** a project
+  dependency.
+- A full `browser.navigate` reload discards the injected axe script, so SPA routes are
+  walked by clicking `.sidebar-nav a[...]` and waiting for `aria-current="page"` to
+  commit; axe is re-injected after any hard navigation.
+- Screenshots were unavailable in this environment (the browser tab cannot be surfaced
+  to the desktop), so visual confirmation was done by reading computed styles from the
+  live DOM instead — more precise for contrast work than a screenshot.
+
+### Verification trio after the a11y changes
+
+`npm run lint` → exit 0 (8 pre-existing framework warnings, no new) ·
+`npx tsc --noEmit` → exit 0 · `npm run build` → success (11 pages, `/employees/[id]` dynamic).
+
 ## Not yet verified (pending phases)
 
 - Visual responsive rendering at real mobile/tablet viewports (no viewport-emulation tool available in this environment) — CSS breakpoints confirmed present; drawer interaction logic verified.
-- Lighthouse/accessibility audit pass — optional polish phase.

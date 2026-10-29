@@ -121,8 +121,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-header">
-          <Link href="/" className="brand" aria-label="Northstar HRMS dashboard">
+          <Link href="/" className="brand" aria-label="N Northstar HRMS dashboard">
             <span className="brand-mark" aria-hidden="true">N</span>
+            {' '}
             <span className="brand-name">Northstar HRMS</span>
           </Link>
           <button className="icon-button sidebar-close" onClick={() => setSidebarOpen(false)} aria-label="Close navigation">
