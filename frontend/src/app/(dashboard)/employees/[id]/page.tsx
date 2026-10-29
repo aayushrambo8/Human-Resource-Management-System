@@ -1,17 +1,29 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { employeeApi } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
+import { gates } from '@/lib/permissions';
+import type { EmployeeRequest } from '@/lib/types';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { EmptyState, LoadingState, ErrorState } from '@/components/ui/States';
 import { Island, IslandHeader, IslandBody } from '@/components/ui/Island';
+import { Modal } from '@/components/ui/Modal';
+import { EmployeeForm } from '@/components/forms/EmployeeForm';
 import { formatDate, initials } from '@/lib/format';
 
 export default function EmployeeDetailPage() {
   const params = useParams();
   const id = params.id as string;
+  const { roles } = useAuth();
+  const queryClient = useQueryClient();
+  const canWrite = gates.canWriteEmployees(roles);
+  const [editing, setEditing] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+
   const employee = useQuery({ queryKey: ['employee', id], queryFn: () => employeeApi.get(id), enabled: !!id });
 
   if (employee.isLoading) return <LoadingState label="Loading employee" />;
@@ -19,6 +31,16 @@ export default function EmployeeDetailPage() {
   if (!employee.data) return <EmptyState title="Employee not found" description="The requested employee does not exist." icon="users" />;
 
   const emp = employee.data;
+
+  const handleUpdate = async (request: EmployeeRequest) => {
+    await employeeApi.update(id, request);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['employee', id] }),
+      queryClient.invalidateQueries({ queryKey: ['employees'] }),
+    ]);
+    setEditing(false);
+    setJustSaved(true);
+  };
 
   return (
     <div className="dashboard">
@@ -29,7 +51,28 @@ export default function EmployeeDetailPage() {
           </Link>
           <h1 className="dashboard-title">{emp.firstName} {emp.lastName}</h1>
         </div>
+        {canWrite && (
+          <div className="dashboard-actions">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => {
+                setJustSaved(false);
+                setEditing(true);
+              }}
+            >
+              <Icon name="settings" size={14} /> Edit employee
+            </button>
+          </div>
+        )}
       </header>
+
+      {justSaved && (
+        <div className="alert alert-success" role="status">
+          <Icon name="info" size={16} />
+          <span>Employee details saved.</span>
+        </div>
+      )}
 
       <section aria-label="Employee details">
         <Island>
@@ -56,6 +99,24 @@ export default function EmployeeDetailPage() {
           </IslandBody>
         </Island>
       </section>
+
+      {/* employee:write (ADMIN/HR) only — EMPLOYEE never sees the button, and
+          the backend rejects the PUT independently. */}
+      {canWrite && (
+        <Modal
+          open={editing}
+          onClose={() => setEditing(false)}
+          title="Edit employee"
+          description={`Update the directory record for ${emp.employeeCode}.`}
+        >
+          <EmployeeForm
+            initialValues={emp}
+            submitLabel="Save changes"
+            onSubmit={handleUpdate}
+            onCancel={() => setEditing(false)}
+          />
+        </Modal>
+      )}
     </div>
   );
 }

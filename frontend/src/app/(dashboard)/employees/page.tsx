@@ -3,12 +3,20 @@
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { employeeApi } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
+import { gates } from '@/lib/permissions';
 import { Icon } from '@/components/ui/Icon';
 import { EmptyState, LoadingState, ErrorState } from '@/components/ui/States';
 import { formatDate, initials } from '@/lib/format';
 
 export default function EmployeesPage() {
-  const employees = useQuery({ queryKey: ['employees'], queryFn: employeeApi.list });
+  const { roles } = useAuth();
+  // GET /api/employees requires employee:read (ADMIN/HR). EMPLOYEE receives
+  // 401 from the backend, so gate the query rather than fire a doomed request —
+  // the same treatment the attendance page already gets.
+  const canRead = gates.canReadDirectory(roles);
+  const canWrite = gates.canWriteEmployees(roles);
+  const employees = useQuery({ queryKey: ['employees'], queryFn: employeeApi.list, enabled: canRead });
 
   return (
     <div className="dashboard">
@@ -17,11 +25,24 @@ export default function EmployeesPage() {
           <p className="dashboard-date">DIRECTORY</p>
           <h1 className="dashboard-title">Employees</h1>
         </div>
+        {canWrite && (
+          <div className="dashboard-actions">
+            <Link href="/employees/new" className="btn btn-primary">
+              <Icon name="plus" size={14} /> New employee
+            </Link>
+          </div>
+        )}
       </header>
 
       <section aria-label="Employees list">
         <article className="island island-table">
-          {employees.isLoading ? (
+          {!canRead ? (
+            <EmptyState
+              title="Restricted to HR & Admin"
+              description="The employee directory is managed by HR. Contact your administrator if you need access."
+              icon="users"
+            />
+          ) : employees.isLoading ? (
             <LoadingState label="Loading employees" />
           ) : employees.isError ? (
             <ErrorState message="Failed to load employees" onRetry={() => void employees.refetch()} />

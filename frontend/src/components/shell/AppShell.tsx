@@ -29,6 +29,7 @@ const NAV_ITEMS: NavItem[] = [
 const PAGE_TITLES: Record<string, string> = {
   '/': 'Dashboard',
   '/employees': 'Employees',
+  '/employees/new': 'New Employee',
   '/attendance': 'Attendance',
   '/leave': 'Leave',
   '/departments': 'Departments',
@@ -37,6 +38,7 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 function pageTitle(pathname: string): string {
+  if (pathname === '/employees/new') return 'New Employee';
   if (pathname.startsWith('/employees/')) return 'Employee Details';
   return PAGE_TITLES[pathname] ?? 'Dashboard';
 }
