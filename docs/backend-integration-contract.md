@@ -15,11 +15,11 @@ from entities alone. Anything not determinable is explicitly marked UNKNOWN.
 - Pagination (2 endpoints only): request `?page=0&size=20` (page ≥ 0, size clamped 1–100);
   response `{ "content": [...], "page": 0, "size": 20, "totalElements": 0, "totalPages": 0 }`
   (`common/PageResponse`). 0-based.
-- Errors: 404/409 as RFC-9457 `ProblemDetail` (`type/title/status/detail`). 401 from the security
-  entry point (`sendError(401)`, empty body). 403 from method security. 400 from
-  `ResponseStatusException` reasons and bean-validation default handling — the exact validation
-  error body shape is **UNKNOWN** (not runtime-verified this phase); the frontend reads `detail`,
-  which is present in ProblemDetail-family responses.
+- Errors: **superseded by the runtime-verified matrix in "Runtime error behavior" below**
+  (Finding A — most non-advice error classes are masked to a bare 401). 404/409 from
+  `ApiExceptionHandler` are RFC-9457 `ProblemDetail` (`type/title/status/detail/instance`) —
+  verified at runtime 2026-10-29. Bean-validation failures and `ResponseStatusException`
+  reasons do **not** reach the client (masked to 401) — previously marked UNKNOWN, now verified.
 - CORS: allowlisted origins (`HRMS_CORS_ALLOWED_ORIGINS`), no credentials; allowed headers
   `Authorization, Content-Type, X-Device-Token, X-Bootstrap-Token`.
 
@@ -63,12 +63,59 @@ password change, account listing, role management API, self-profile endpoint.
 - `AttendanceDirection`: IN, OUT, UNKNOWN
 - `BiometricLogStatus`: ACCEPTED, UNKNOWN_EMPLOYEE, REJECTED
 
-## Frontend usage vs contract (verified gaps)
+## Frontend usage vs contract (verified gaps — updated 2026-10-29)
 
-- Frontend calls only: #1, #4, #6, #8, #9, #15, #18, #19, #22. All other endpoints are unused.
-- `TokenResponse.roles` is collected but the frontend never performs permission-aware UI gating.
-- The Next.js rewrite `/api/backend/:path*` is configured but the axios client targets the backend
-  origin directly — two competing URL conventions.
-- Dashboard KPIs ("Total Employees", "Active Now", "Departments", "Total Punches") are derived
-  client-side from #8, #15 and #18 (`totalElements`); **no aggregation endpoint exists** and any
-  dashboard requirement beyond these raw lists needs new backend work.
+- Frontend calls: #1, #3, #4, #5, #6, #7, #8, #9, #10, #11, #15, #16, #17, #18, #19, #21, #22, #23.
+  (All write paths verified live in Phase D — see testing-report.) Still unused: #2, #12, #13, #14,
+  #20 (device-facing), and every endpoint listed as absent above.
+- ~~`TokenResponse.roles` never used for gating~~ → **resolved**: `src/lib/permissions.ts` maps
+  roles to the exact 12 permissions from `V3__authentication_and_leave.sql` and gates nav, pages,
+  and action buttons (verified live for ADMIN/HR/EMPLOYEE).
+- ~~Two competing URL conventions~~ → **resolved**: single same-origin convention; axios base
+  `/api/backend` proxied by the Next.js server (`next.config.ts` rewrites; runtime target env
+  `API_PROXY_TARGET`). Backend CORS now only matters for direct cross-origin setups
+  (`NEXT_PUBLIC_API_URL`), which is documented in `frontend/.env.example`.
+- Dashboard KPIs are derived client-side from #8, #15 and #18 (`totalElements`);
+  **no aggregation endpoint exists** and any dashboard requirement beyond these raw lists needs
+  new backend work. (Unchanged — documented gap, no numbers are invented.)
+
+## Runtime error behavior (verified 2026-10-29 — Finding A: masked 401s)
+
+**Finding A.** Any exception that reaches the servlet container's error dispatch is turned into a
+**bare `401` with an empty body**, discarding the original status and message. Mechanism (proven
+with Spring Security TRACE on a throwaway instance): unhandled exception → container forwards to
+`GET /error` → `JwtAuthenticationFilter` is a `OncePerRequestFilter` and **skips ERROR dispatches**
+→ request runs anonymous → `AuthorizationFilter` denies `/error` → entry point
+`sendError(401)` overwrites the response. `ApiExceptionHandler` (@RestControllerAdvice) handles
+only `EntityNotFoundException` and `DataIntegrityViolationException`, which are resolved inside the
+DispatcherServlet and therefore pass through untouched.
+
+Verified matrix (runtime, 2026-10-29; bodies read via `HttpClient`):
+
+| Error class | Example | Intended | Client actually receives | Verdict |
+|---|---|---|---|---|
+| `EntityNotFoundException` (advice) | GET unknown employee id | 404 ProblemDetail | **404 + full ProblemDetail** (`detail: "Employee not found"`) | ✅ passes |
+| `DataIntegrityViolationException` (advice) | duplicate department code | 409 ProblemDetail | **409 + full ProblemDetail** (`detail: "A record with these values already exists"`) | ✅ passes |
+| Entry-point 401 (missing/expired token) | GET `/api/employees` w/o token | 401 empty | 401 empty | ✅ as designed |
+| `ResponseStatusException` from services | leave end<start (400), account-not-linked (409) | 400/409 + reason | **401, empty body** | ❌ masked |
+| Bean-validation `@Valid` failure | empty department code | 400 field errors | **401, empty body** | ❌ masked |
+| Method-security denial (`@PreAuthorize`) | EMPLOYEE → PATCH decision / POST accounts | 403 | **401, empty body** | ❌ masked |
+| Unexpected persistence/DB failure | H2 table missing (Finding B) | 500 | **401, empty body** | ❌ masked |
+
+**Frontend impact:** genuine session expiry, permission denial, validation failure, conflict, and
+infrastructure failure are indistinguishable on the wire (all `401`, empty body). The axios
+interceptor therefore shows "Your session has expired" for masked errors too — a misleading message
+that **cannot be fixed client-side**. Validation errors (400 field messages) never reach the client,
+so forms cannot display server-side field feedback; the frontend does client-side validation
+instead and surfaces a generic failure for masked-401 writes. Backend fix (owner's repo): register
+`@ExceptionHandler` for `ResponseStatusException` + `MethodArgumentNotValidException` +
+`AuthorizationDeniedException` in `ApiExceptionHandler`, or add a security handler for
+`/error` dispatches. Documented as a gap — **no backend file was modified.**
+
+**Finding B (operational, run-recipe only).** The H2 URL in the documented run recipe lacked
+`DB_CLOSE_DELAY=-1`; after a machine sleep Hikari closed its last connection, H2 destroyed the
+in-memory database, and every subsequent DB call failed (`Table "auth_bootstrap_lock" not found
+(this database is empty)`) — masked to 401 by Finding A, which made the outage look like a mass
+auth failure. Recovery: restart with `DB_CLOSE_DELAY=-1` appended to `HRMS_DB_URL` (environment
+only; Flyway re-runs and all accounts must be re-created — V2 seeds no `user_accounts`).
+The `DB_CLOSE_DELAY=-1` value is now part of the recipe in `docs/testing-report.md` §Phase D.

@@ -98,7 +98,7 @@ Per the Stage-0 decisions: align middleware + token storage; add permission-awar
 (claims are already in the JWT/`TokenResponse`); bootstrap flow guidance in docs; keep the backend
 security model as-is (stateless Bearer, CSRF-disabled) unless a cookie/session decision changes it.
 
-## Stage 7 — Automated tests & production build
+## Stage 7 — Automated tests & production build — ✅ completed 2026-10-29
 
 1. Frontend: adopt the built-in `next build` type-checking + `oxlint` in CI; add React Testing
    Library + Vitest only for: api-client interceptor logic (refresh rotation, single-flight),
@@ -116,7 +116,7 @@ Allowed additions (each optional, decided per stage): `next-themes` (or hand-rol
 Vitest + RTL (Stage 7 only). Explicitly avoided: UI kits (shadcn/Radix), form libraries, chart
 libraries, state managers — revisit only with demonstrated need.
 
-## Proposed file changes for Phase 2 (no files created yet beyond `docs/`)
+## Proposed file changes for Phase 2 (historical — all delivered; see git log)
 
 | File | Change |
 |---|---|
@@ -131,18 +131,24 @@ libraries, state managers — revisit only with demonstrated need.
 | `frontend/Dockerfile`, `docker-compose.yml`, `.env.example` | Next.js build + env-name fixes |
 | `backend/…` | **none** in Phase 2 unless a contract gap is approved (pagination, stats) |
 
-## Prioritized checklist
+## Prioritized checklist — all items completed (2026-10-29)
 
-1. ☐ Approve audit findings; resolve auth-premise + token-storage decisions.
-2. ☐ Commit the Vite→Next migration; clean the `[id` artifact; fix lint script.
-3. ☐ Decide URL convention (same-origin proxy recommended) + timezone policy; update env docs.
-4. ☐ Design tokens + `(dashboard)` app shell layout.
-5. ☐ Dark/light theme implementation + toggle.
-6. ☐ Verified read-only slice (attendance) with hardened error handling.
-7. ☐ First module end to end (employees directory/details).
-8. ☐ Expand: departments, leave (submit/review), employee create/edit, biometric logs, accounts UI.
-9. ☐ Permission-aware UI gating; bootstrap ops documented.
-10. ☐ Tests (oxlint + type-check + Vitest slice) and production build/Docker repair.
+1. ☑ Approve audit findings; resolve auth-premise + token-storage decisions.
+2. ☑ Commit the Vite→Next migration; clean the `[id` artifact; fix lint script.
+3. ☑ Decide URL convention (same-origin proxy chosen) + timezone policy documented; env docs updated.
+4. ☑ Design tokens + `(dashboard)` app shell layout.
+5. ☑ Dark/light theme implementation + toggle (persisted, system preference, no hydration errors).
+6. ☑ Verified read-only slice (attendance) with hardened error handling.
+7. ☑ First module end to end (employees directory/details + create/edit write paths).
+8. ☑ Expand: departments, leave (submit/review), employee create/edit, biometric logs, accounts UI —
+   **all write paths browser-verified live 2026-10-29** (testing-report §D.2).
+9. ☑ Permission-aware UI gating (`src/lib/permissions.ts`, verified for ADMIN/HR/EMPLOYEE);
+   bootstrap ops documented (testing-report Phase B/D run recipe incl. `DB_CLOSE_DELAY=-1`).
+10. ☑ Tests (Vitest 104/104 + oxlint + type-check, all exit 0) and production build/Docker repair
+    (standalone build + server verified locally; Docker image build unavailable on this host —
+    testing-report §D.3–D.4). `npm audit` = 2 known vulns in Next's pinned postcss, tracked, not force-fixed.
 
-**STOP: audit complete. Implementation must not begin until these findings are reviewed and
-approved.**
+Verification evidence for every claim: `docs/testing-report.md` (§Phase D, 2026-10-29).
+Backend gaps found during integration (masked-401 error handling, no aggregation/pagination
+endpoints): `docs/backend-integration-contract.md` + `docs/integration-risks.md` — documented,
+not patched (backend is read-only).

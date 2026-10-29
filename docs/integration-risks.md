@@ -24,3 +24,30 @@
 
 Not applicable this phase: numeric/currency conventions (no monetary fields exist anywhere in the
 schema or DTOs).
+
+## Status update (2026-10-29, end of Phase 2)
+
+| # | Status | Evidence / notes |
+|---|---|---|
+| 1 | ✅ Resolved | Token storage decided (sessionStorage + client-side gating; backend enforces authorization). `middleware.ts` converted to an intentional pass-through with the decision documented in-file. |
+| 2 | ✅ Resolved | Same-origin `/api/backend` proxy adopted; CORS only matters for optional direct cross-origin (`NEXT_PUBLIC_API_URL`). Run recipe sets `HRMS_CORS_ALLOWED_ORIGINS=http://localhost:3000`. |
+| 3 | ✅ Resolved | Dockerfile rewritten for Next.js standalone (node:22-alpine multi-stage); compose updated (`API_PROXY_TARGET`, `:3000` port, wget healthcheck). All stages executed locally with exit 0; the image build itself could not run (no Docker on host) — see testing-report D.4. |
+| 4 | ✅ Resolved | Single URL convention (axios base `/api/backend` + rewrites). |
+| 5 | ✅ Resolved | `frontend/.env.example` rewritten (`API_PROXY_TARGET`, `NEXT_PUBLIC_API_URL`). |
+| 6 | ✅ Resolved | `lint` script → `oxlint src`. |
+| 7 | ✅ Resolved | All former dead links now route to real forms/pages (create flows verified live). |
+| 8 | ⚠ Open (backend) | Unpaginated list endpoints unchanged — read-only backend; documented as a contract gap. |
+| 9 | ⚠ Open (accepted) | No aggregation endpoint; KPIs computed client-side from real lists, no invented numbers. |
+| 10 | ⚠ Open | Institutional timezone still undecided; date-only strings and instant formatting documented. |
+| 11 | ✅ Verified (worse than thought) | Runtime-verified error matrix in `backend-integration-contract.md`: 404/409 pass as ProblemDetail, but `ResponseStatusException`, bean-validation 400s, method-security 403s, and 500s are all **masked to a bare 401** (Finding A). Validation messages never reach the client. |
+| 12 | ⚠ Ongoing | Types hand-duplicated; re-verified this phase against the contract doc + 104 tests. |
+| 13 | ✅ Resolved | Settings text corrected to "Spring Boot 4". |
+| 14 | ✅ Resolved | Malformed `[id` directory removed (sha256-verified move, Stage 0). |
+| 15 | ⚠ Open | Design reference image still absent. |
+| 16 | ✅ Resolved | Auth premise resolved via authentication-decisions.md (Stage 0). |
+| 17 | ✅ Resolved | Migration and subsequent work committed (Stages 0–C, `f95409f`+). |
+| 18 | ℹ Info | `logout` still Bearer-required; frontend always sends one (204 verified). |
+| 19 | ℹ Info | Version coupling unchanged; pin toolchains in CI. |
+| 20 (new) | ⚠ Open (backend) | **Finding A** — errors masked to bare 401 (see contract doc; owner-side fix listed). Blocks meaningful server-side error messages client-side. |
+| 21 (new) | ✅ Resolved (ops) | **Finding B** — H2 in-mem DB died after machine sleep (no `DB_CLOSE_DELAY=-1`); recipe updated in testing-report, recovery procedure documented. |
+| 22 (new) | ⚠ Open | **Dependency audit: 2 vulns (1 moderate, 1 high)** in Next's pinned `postcss` (build-time toolchain). Only fix = `next@16` breaking major; not applied without approval. |
