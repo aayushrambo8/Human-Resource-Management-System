@@ -12,10 +12,10 @@
 *.class
 *.log
 
-# Node / React
+# Node / Next.js
 /frontend/node_modules/
-/frontend/dist/
-/frontend/.vite/
+/frontend/.next/
+/frontend/out/
 !/frontend/.env.example
 
 # IDE

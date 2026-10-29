@@ -67,10 +67,12 @@ then once per day, retaining the last 14 days in the private `backups/` director
 Copy backups to separate institution-managed storage regularly; a backup on the
 same server is not protection against server or disk failure.
 
-The frontend defaults to same-origin API requests behind the bundled Nginx proxy.
-For development outside Docker, use `frontend/.env.example` and set
-`VITE_API_BASE_URL=http://localhost:8080`; for direct browser access to another
-origin, configure `HRMS_CORS_ALLOWED_ORIGINS` in the root `.env`.
+The frontend defaults to same-origin API requests (`/api/backend/...`) proxied by
+the Next.js server (see `frontend/next.config.ts`); in Docker the proxy target is
+set with `API_PROXY_TARGET` (compose defaults to `http://backend:8080`). For
+development outside Docker the proxy defaults to `http://localhost:8080`, and for
+direct cross-origin browser access set `NEXT_PUBLIC_API_URL` in
+`frontend/.env.local` and configure `HRMS_CORS_ALLOWED_ORIGINS` in the root `.env`.
 
 See [backend/README.md](backend/README.md) and [docs/backend-plan.md](docs/backend-plan.md)
 for API behavior and implementation notes. `.horilla-hr/` remains a local-only

@@ -1,4 +1,6 @@
 node_modules
-dist
-.vite
-.env
+.next
+out
+coverage
+*.log
+.env*
