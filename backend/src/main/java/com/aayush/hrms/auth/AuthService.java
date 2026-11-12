@@ -2,7 +2,6 @@ package com.aayush.hrms.auth;
 
 import com.aayush.hrms.employee.Employee;
 import com.aayush.hrms.employee.EmployeeRepository;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
