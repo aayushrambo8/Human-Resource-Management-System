@@ -1,2 +1,0 @@
-# Keeps the directory in git: Next.js serves files here, and the Dockerfile
-# copies it into the production image.
