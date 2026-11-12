@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Abstract Themes Quality Audit & Visual Proof Sheet</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    p.lead {
+      color: #94a3b8;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 28px;
+    }
+
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #334155;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-family: monospace;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: #0f172a;
+      color: #38bdf8;
+    }
+
+    .preview-container {
+      width: 100%;
+      height: 280px;
+      position: relative;
+      background: #000;
+    }
+
+    .preview-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .mock-shell {
+      position: absolute;
+      top: 24px;
+      bottom: 24px;
+      left: 24px;
+      right: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.45);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .card.dark-card .mock-shell {
+      background: rgba(15, 23, 42, 0.55);
+      border-color: rgba(255, 255, 255, 0.12);
+      color: #f8fafc;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Abstract Background Art System — Visual Verification Sheet</h1>
+  <p class="lead">Audit sheet displaying all 8 original artworks across 5 distinct visual depth planes and simulated
+    floating dashboard shells.</p>
+
+  <div class="grid">
+    <!-- Desert Studio Light -->
+    <div class="card">
+      <div class="card-header">
+        <strong>1. Desert Studio — Light</strong>
+        <span class="badge">1920 × 1080 SVG</span>
+      </div>
+      <div class="preview-container">
+        <img src="/themes/desert-studio/light.svg" alt="Desert Studio Light" />
+        <div class="mock-shell">Simulated Floating HRMS Workspace (Center Low-Contrast Region)</div>
+      </div>
+    </div>
+
+    <!-- Desert Studio Dark -->
+    <div class="card dark-card">
+      <div class="card-header">
+        <strong>2. Desert Studio — Dark</strong>
+        <span class="badge">1920 × 1080 SVG</span>
+      </div>
+      <div class="preview-container">
+        <img src="/themes/desert-studio/dark.svg" alt="Desert Studio Dark" />
+        <div class="mock-shell">Simulated Floating HRMS Workspace</div>
+      </div>
+    </div>
+
+    <!-- Botanical Light -->
+    <div class="card">
+      <div class="card-header">
+        <strong>3. Botanical — Light</strong>
+        <span class="badge">1920 × 1080 SVG</span>
+      </div>
+      <div class="preview-container">
+        <img src="/themes/botanical/light.svg" alt="Botanical Light" />
+        <div class="mock-shell">Simulated Floating HRMS Workspace</div>
+      </div>
+    </div>
+
+    <!-- Botanical Dark -->
+    <div class="card dark-card">
+      <div class="card-header">
+        <strong>4. Botanical — Dark</strong>
+        <span class="badge">1920 × 1080 SVG</span>
+      </div>
+      <div class="preview-container">
+        <img src="/themes/botanical/dark.svg" alt="Botanical Dark" />
+        <div class="mock-shell">Simulated Floating HRMS Workspace</div>
+      </div>
+    </div>
+
+    <!-- Cloudscape Light -->
+    <div class="card">
+      <div class="card-header">
+        <strong>5. Cloudscape — Light</strong>
+        <span class="badge">1920 × 1080 SVG</span>
+      </div>
+      <div class="preview-container">
+        <img src="/themes/cloudscape/light.svg" alt="Cloudscape Light" />
+        <div class="mock-shell">Simulated Floating HRMS Workspace</div>
+      </div>
+    </div>
+
+    <!-- Cloudscape Dark -->
+    <div class="card dark-card">
+      <div class="card-header">
+        <strong>6. Cloudscape — Dark</strong>
+        <span class="badge">1920 × 1080 SVG</span>
+      </div>
+      <div class="preview-container">
+        <img src="/themes/cloudscape/dark.svg" alt="Cloudscape Dark" />
+        <div class="mock-shell">Simulated Floating HRMS Workspace</div>
+      </div>
+    </div>
+
+    <!-- Terracotta Light -->
+    <div class="card">
+      <div class="card-header">
+        <strong>7. Terracotta — Light</strong>
+        <span class="badge">1920 × 1080 SVG</span>
+      </div>
+      <div class="preview-container">
+        <img src="/themes/terracotta/light.svg" alt="Terracotta Light" />
+        <div class="mock-shell">Simulated Floating HRMS Workspace</div>
+      </div>
+    </div>
+
+    <!-- Terracotta Dark -->
+    <div class="card dark-card">
+      <div class="card-header">
+        <strong>8. Terracotta — Dark</strong>
+        <span class="badge">1920 × 1080 SVG</span>
+      </div>
+      <div class="preview-container">
+        <img src="/themes/terracotta/dark.svg" alt="Terracotta Dark" />
+        <div class="mock-shell">Simulated Floating HRMS Workspace</div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
