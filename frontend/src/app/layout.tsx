@@ -1,17 +1,11 @@
-import type { Metadata, Viewport } from 'next';
+import type { Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { QueryProvider } from '@/lib/query-provider';
 import { ClientAuthProvider } from '@/lib/auth-provider';
 import { ThemeProvider, themeInitScript } from '@/lib/theme-provider';
-import { BRANDING } from '@/lib/branding';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
-
-export const metadata: Metadata = {
-  title: `${BRANDING.name} HRMS`,
-  description: BRANDING.tagline,
-};
 
 export const viewport: Viewport = {
   width: 'device-width',

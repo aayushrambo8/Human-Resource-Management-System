@@ -114,16 +114,22 @@ body {
 .workspace-frame {
   position: relative;
   z-index: 10;
-  min-height: 100vh;
-  padding: 24px 28px;
+  height: 100vh;
+  max-height: 100vh;
+  padding: 20px 24px;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: stretch;
+  overflow: hidden;
 }
 
 @media (max-width: 1024px) {
   .workspace-frame {
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
     padding: 12px 14px;
+    overflow: visible;
   }
 }
 
@@ -137,14 +143,16 @@ body {
 .floating-workspace-shell {
   width: 100%;
   max-width: 1680px;
-  min-height: calc(100vh - 48px);
+  height: 100%;
   display: flex;
-  gap: 22px;
+  gap: 20px;
   position: relative;
+  min-height: 0;
 }
 
 @media (max-width: 1024px) {
   .floating-workspace-shell {
+    height: auto;
     min-height: calc(100vh - 24px);
     gap: 12px;
   }
@@ -161,11 +169,10 @@ body {
   padding: 20px 16px;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 48px);
-  position: sticky;
-  top: 24px;
+  height: 100%;
   backdrop-filter: blur(12px);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
 }
 
 .floating-sidebar.collapsed {
@@ -227,23 +234,32 @@ body {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 1024px) {
+  .floating-main-area {
+    height: auto;
+    overflow: visible;
+  }
 }
 
 /* Independent Floating Topbar */
 .floating-topbar {
-  height: 60px;
+  height: 56px;
+  flex-shrink: 0;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--panel-radius);
   box-shadow: var(--shadow-card);
-  padding: 0 24px;
+  padding: 0 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   backdrop-filter: blur(12px);
-  position: sticky;
-  top: 24px;
   z-index: 30;
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
@@ -251,19 +267,38 @@ body {
 /* Floating Main Workspace Panel */
 .floating-workspace-content {
   flex: 1;
+  min-height: 0;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--panel-radius);
   box-shadow: var(--shadow-card);
-  padding: 28px 32px 48px;
+  padding: 24px 28px 40px;
   position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
   transition: all 0.25s ease;
+}
+
+.floating-workspace-content::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.floating-workspace-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+.floating-workspace-content::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 9999px;
+}
+.floating-workspace-content::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
 }
 
 @media (max-width: 640px) {
   .floating-workspace-content {
     padding: 16px 16px 32px;
     border-radius: 18px;
+    overflow-y: visible;
   }
 }
 

@@ -10,6 +10,10 @@ interface LiveTimesheetStopwatchProps {
   isCheckedIn: boolean;
   onToggleCheckIn: () => void;
   todayDurationSeconds?: number;
+  activeSeconds?: number;
+  isOnBreak?: boolean;
+  breakSeconds?: number;
+  onToggleBreak?: () => void;
 }
 
 export function LiveTimesheetStopwatch({
@@ -17,26 +21,36 @@ export function LiveTimesheetStopwatch({
   isCheckedIn,
   onToggleCheckIn,
   todayDurationSeconds = 25420, // ~7h 03m 40s default demo
+  activeSeconds,
+  isOnBreak: controlledIsOnBreak,
+  breakSeconds: controlledBreakSeconds,
+  onToggleBreak,
 }: LiveTimesheetStopwatchProps) {
-  const [seconds, setSeconds] = useState(todayDurationSeconds);
-  const [isOnBreak, setIsOnBreak] = useState(false);
-  const [breakSeconds, setBreakSeconds] = useState(0);
+  const [internalSeconds, setInternalSeconds] = useState(todayDurationSeconds);
+  const [internalIsOnBreak, setInternalIsOnBreak] = useState(false);
+  const [internalBreakSeconds, setInternalBreakSeconds] = useState(0);
+
+  const isControlled = activeSeconds !== undefined;
+  const currentSeconds = isControlled ? activeSeconds : internalSeconds;
+  const currentIsOnBreak = controlledIsOnBreak !== undefined ? controlledIsOnBreak : internalIsOnBreak;
+  const currentBreakSeconds = controlledBreakSeconds !== undefined ? controlledBreakSeconds : internalBreakSeconds;
 
   useEffect(() => {
+    if (isControlled) return;
     let interval: NodeJS.Timeout | null = null;
-    if (isCheckedIn && !isOnBreak) {
+    if (isCheckedIn && !currentIsOnBreak) {
       interval = setInterval(() => {
-        setSeconds((prev) => prev + 1);
+        setInternalSeconds((prev) => prev + 1);
       }, 1000);
-    } else if (isCheckedIn && isOnBreak) {
+    } else if (isCheckedIn && currentIsOnBreak) {
       interval = setInterval(() => {
-        setBreakSeconds((prev) => prev + 1);
+        setInternalBreakSeconds((prev) => prev + 1);
       }, 1000);
     }
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isCheckedIn, isOnBreak]);
+  }, [isCheckedIn, currentIsOnBreak, isControlled]);
 
   const formatHMS = (totalSeconds: number) => {
     const hrs = Math.floor(totalSeconds / 3600);
@@ -49,8 +63,8 @@ export function LiveTimesheetStopwatch({
     };
   };
 
-  const { hrs, mins, secs } = formatHMS(seconds);
-  const breakTime = formatHMS(breakSeconds);
+  const { hrs, mins, secs } = formatHMS(currentSeconds);
+  const breakTime = formatHMS(currentBreakSeconds);
 
   const handleAction = () => {
     onToggleCheckIn();
@@ -61,6 +75,14 @@ export function LiveTimesheetStopwatch({
         deviceCode: 'WEB-TERMINAL',
         time: new Date().toISOString(),
       });
+    }
+  };
+
+  const handleBreak = () => {
+    if (onToggleBreak) {
+      onToggleBreak();
+    } else {
+      setInternalIsOnBreak((prev) => !prev);
     }
   };
 
@@ -89,7 +111,7 @@ export function LiveTimesheetStopwatch({
               }`}
             />
             <span className="text-[10.5px] font-mono tracking-wider uppercase font-semibold text-[var(--color-text-muted)]">
-              {isCheckedIn ? (isOnBreak ? 'On Break' : 'Active Attendance') : 'Checked Out'}
+              {isCheckedIn ? (currentIsOnBreak ? 'On Break' : 'Active Attendance') : 'Checked Out'}
             </span>
           </div>
           <h2 className="text-base font-bold text-[var(--color-text)] mt-1 tracking-tight">
@@ -115,7 +137,7 @@ export function LiveTimesheetStopwatch({
           <span className="text-[var(--color-primary)]">{secs}</span>
         </div>
         <p className="text-[11px] font-mono text-[var(--color-text-muted)]">
-          {isOnBreak ? `Break duration: ${breakTime.mins}m ${breakTime.secs}s` : 'Logged active productive time today'}
+          {currentIsOnBreak ? `Break duration: ${breakTime.mins}m ${breakTime.secs}s` : 'Logged active productive time today'}
         </p>
       </div>
 
@@ -160,10 +182,10 @@ export function LiveTimesheetStopwatch({
         {isCheckedIn && (
           <button
             type="button"
-            onClick={() => setIsOnBreak((prev) => !prev)}
+            onClick={handleBreak}
             className="py-2.5 px-3 rounded-xl font-semibold text-xs bg-[var(--color-surface-elevated)] hover:bg-[var(--color-canvas-secondary)] text-[var(--color-text)] border border-[var(--color-border)] transition-colors cursor-pointer shrink-0"
           >
-            {isOnBreak ? 'Resume' : 'Break'}
+            {currentIsOnBreak ? 'Resume' : 'Break'}
           </button>
         )}
       </div>

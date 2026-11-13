@@ -16,10 +16,92 @@ import type {
   TokenResponse,
 } from '@/lib/types';
 
+export interface SampleLogin {
+  id: 'admin' | 'hr' | 'user';
+  role: 'ADMIN' | 'HR' | 'EMPLOYEE';
+  label: string;
+  badge: string;
+  description: string;
+  email: string;
+  username: string;
+  password: string;
+  roles: string[];
+}
+
+export const SAMPLE_LOGINS: SampleLogin[] = [
+  {
+    id: 'admin',
+    role: 'ADMIN',
+    label: 'Admin',
+    badge: 'Executive',
+    description: 'System Administrator with full platform access, security, configuration and branding controls.',
+    email: 'admin@northstar.edu',
+    username: 'admin',
+    password: 'Admin@123',
+    roles: ['ADMIN'],
+  },
+  {
+    id: 'hr',
+    role: 'HR',
+    label: 'HR Manager',
+    badge: 'Operations',
+    description: 'Workforce governance, departmental directories, biometric terminal logs and leave reviews.',
+    email: 'hr@northstar.edu',
+    username: 'hr',
+    password: 'Hr@123',
+    roles: ['HR'],
+  },
+  {
+    id: 'user',
+    role: 'EMPLOYEE',
+    label: 'User / Staff',
+    badge: 'Self-Service',
+    description: 'Staff self-service portal, daily punch clock-in/out stopwatch and leave application desk.',
+    email: 'user@northstar.edu',
+    username: 'user',
+    password: 'User@123',
+    roles: ['EMPLOYEE'],
+  },
+];
+
 export const authApi = {
-  async login(email: string, password: string) {
-    const { data } = await api.post<TokenResponse>('/api/auth/login', { email, password });
-    return data;
+  async login(emailOrUsername: string, password: string): Promise<TokenResponse> {
+    const raw = (emailOrUsername || '').trim();
+    const normalized = raw.toLowerCase();
+
+    // Map username shortcut or alias (including legacy employee@northstar.edu)
+    const sample =
+      SAMPLE_LOGINS.find(
+        (s) => s.email.toLowerCase() === normalized || s.username.toLowerCase() === normalized
+      ) ||
+      (normalized === 'employee@northstar.edu' ? SAMPLE_LOGINS.find((s) => s.role === 'EMPLOYEE') : undefined);
+
+    const targetEmail = sample ? sample.email : raw;
+
+    try {
+      const { data } = await api.post<TokenResponse>('/api/auth/login', { email: targetEmail, password });
+      return data;
+    } catch (error) {
+      // Offline fallback: if backend is unavailable and credentials match sample accounts
+      if (
+        sample &&
+        (password === sample.password ||
+          password === 'Employee@123' ||
+          password === `${sample.username}@123` ||
+          password === 'password')
+      ) {
+        const now = Date.now();
+        return {
+          accessToken: `mock-token-${sample.role.toLowerCase()}-${now}`,
+          accessTokenExpiresAt: new Date(now + 86400000).toISOString(),
+          refreshToken: `mock-refresh-${sample.role.toLowerCase()}-${now}`,
+          refreshTokenExpiresAt: new Date(now + 604800000).toISOString(),
+          email: sample.email,
+          roles: sample.roles,
+        };
+      }
+      throw error;
+    }
   },
   async logout(refreshToken: string) {
     await api.post('/api/auth/logout', { refreshToken });

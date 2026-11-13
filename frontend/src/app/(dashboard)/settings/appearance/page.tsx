@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useTheme } from '@/lib/theme-provider';
 import { THEMES, type ThemeId, type AppearanceMode } from '@/lib/theme-definitions';
 import { Icon } from '@/components/ui/Icon';
@@ -34,9 +33,6 @@ const PRESET_THEMES: { id: ThemeId; title: string; subtitle: string; swatches: s
 
 export default function AppearanceSettingsPage() {
   const { preferences, setTheme, setMode, updatePreferences, resetDefaults, resolvedMode } = useTheme();
-  const [hoveredTheme, setHoveredTheme] = useState<ThemeId | null>(null);
-
-  const activeThemeId = hoveredTheme || preferences.theme;
 
   return (
     <div className="space-y-8 max-w-5xl">
@@ -87,8 +83,6 @@ export default function AppearanceSettingsPage() {
             return (
               <div
                 key={preset.id}
-                onMouseEnter={() => setHoveredTheme(preset.id)}
-                onMouseLeave={() => setHoveredTheme(null)}
                 onClick={() => setTheme(preset.id)}
                 className={`relative overflow-hidden rounded-2xl border cursor-pointer transition-all duration-200 p-5 ${
                   isSelected

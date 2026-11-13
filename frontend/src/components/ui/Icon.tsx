@@ -2,6 +2,7 @@ import React from 'react';
 import {
   LayoutDashboard,
   Users,
+  User,
   Building2,
   Clock,
   Fingerprint,
@@ -48,6 +49,7 @@ import {
 
 export type IconName =
   | 'grid'
+  | 'user'
   | 'users'
   | 'building'
   | 'clock'
@@ -109,6 +111,8 @@ export function Icon({ name, size = 16, className = '', ...rest }: IconProps) {
   switch (name) {
     case 'grid':
       return <LayoutDashboard {...iconProps} />;
+    case 'user':
+      return <User {...iconProps} />;
     case 'users':
       return <Users {...iconProps} />;
     case 'building':

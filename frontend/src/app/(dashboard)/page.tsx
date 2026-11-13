@@ -14,6 +14,7 @@ import type { AttendanceRecord, Employee, LeaveRequest } from '@/lib/types';
 import { LiveTimesheetStopwatch } from '@/components/dashboard/LiveTimesheetStopwatch';
 import { QuickPunchModal } from '@/components/dashboard/QuickPunchModal';
 import { EnterpriseTable, type Column } from '@/components/ui/EnterpriseTable';
+import { useAttendanceClock } from '@/lib/use-attendance-clock';
 
 // Realistic Enterprise Telemetry Demoware
 const SAMPLE_EMPLOYEES: Employee[] = [
@@ -120,8 +121,16 @@ export default function DashboardPage() {
   const canReviewLeaves = gates.canReviewLeaves(roles);
 
   const [punchModalOpen, setPunchModalOpen] = useState(false);
-  const [isCheckedIn, setIsCheckedIn] = useState(true);
-  const [localPunches, setLocalPunches] = useState<AttendanceRecord[]>([]);
+  const {
+    isCheckedIn,
+    setIsCheckedIn,
+    isOnBreak,
+    toggleBreak,
+    activeSeconds,
+    breakSeconds,
+    localPunches: persistedPunches,
+    addPunch,
+  } = useAttendanceClock();
 
   // Backend Queries
   const employeesQuery = useQuery({
@@ -147,29 +156,43 @@ export default function DashboardPage() {
     ? attendanceQuery.data.content
     : SAMPLE_ATTENDANCE;
 
-  const combinedAttendance = [...localPunches, ...rawAttendance];
+  const combinedAttendance = [...persistedPunches, ...rawAttendance];
 
   const leaves = leavesQuery.data && leavesQuery.data.length > 0
     ? leavesQuery.data
     : SAMPLE_LEAVES;
 
   const activeEmployees = employees.filter((e) => e.status === 'ACTIVE').length;
-  const presentCount = combinedAttendance.filter((a) => a.direction === 'IN').length;
+
+  // Group latest punch by employee to see who is currently in
+  const latestByEmp = new Map<string, AttendanceRecord>();
+  for (const punch of combinedAttendance) {
+    const key = punch.employeeCode || punch.employeeId || punch.id;
+    if (!latestByEmp.has(key)) {
+      latestByEmp.set(key, punch);
+    }
+  }
+
+  let clockedInCount = 0;
+  for (const punch of latestByEmp.values()) {
+    if (punch.direction === 'IN') {
+      clockedInCount++;
+    }
+  }
+
+  // Present today CANNOT exceed activeEmployees (total workforce)
+  const presentCount = Math.min(clockedInCount, activeEmployees);
   const pendingLeaves = leaves.filter((l) => l.status === 'PENDING').length;
   const approvedLeaves = leaves.filter((l) => l.status === 'APPROVED').length;
 
   const handleManualPunch = (punch: { direction: 'IN' | 'OUT'; deviceCode: string; time: string }) => {
-    const record: AttendanceRecord = {
-      id: `local-${Date.now()}`,
-      employeeId: 'emp-curr',
-      employeeCode: 'EMP-01',
-      employeeName: 'Current User',
-      deviceCode: punch.deviceCode,
-      punchTime: punch.time,
+    addPunch({
       direction: punch.direction,
-    };
-    setLocalPunches((prev) => [record, ...prev]);
-    setIsCheckedIn(punch.direction === 'IN');
+      deviceCode: punch.deviceCode,
+      time: punch.time,
+      employeeName: 'Current User',
+      employeeCode: 'EMP-01',
+    });
   };
 
   const handleLeaveDecision = async (id: string, status: 'APPROVED' | 'REJECTED') => {
@@ -306,14 +329,17 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-baseline justify-between">
             <div className="text-2xl font-bold tracking-tight tabular-nums text-[var(--text)]">
-              {presentCount}
+              {presentCount} <span className="text-sm font-medium text-[var(--text-muted)]">/ {activeEmployees}</span>
             </div>
             <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-              96.4% on-time
+              {activeEmployees > 0 ? Math.round((presentCount / activeEmployees) * 100) : 0}% workforce
             </span>
           </div>
           <div className="w-full bg-[var(--surface-alt)] rounded-full h-1 mt-2.5 overflow-hidden">
-            <div className="bg-emerald-500 h-1 rounded-full" style={{ width: '88%' }} />
+            <div
+              className="bg-emerald-500 h-1 rounded-full transition-all duration-300"
+              style={{ width: `${activeEmployees > 0 ? Math.min(100, Math.round((presentCount / activeEmployees) * 100)) : 0}%` }}
+            />
           </div>
         </div>
 
@@ -397,6 +423,10 @@ export default function DashboardPage() {
             isCheckedIn={isCheckedIn}
             onToggleCheckIn={() => setIsCheckedIn(!isCheckedIn)}
             onPunchSuccess={handleManualPunch}
+            activeSeconds={activeSeconds}
+            isOnBreak={isOnBreak}
+            breakSeconds={breakSeconds}
+            onToggleBreak={toggleBreak}
           />
 
           {/* Action Queue: Pending Leaves */}

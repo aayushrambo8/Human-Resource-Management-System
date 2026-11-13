@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: ${HRMS_DB_URL:jdbc:h2:file:./data/hrms;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1}
+    username: ${HRMS_DB_USERNAME:sa}
+    password: ${HRMS_DB_PASSWORD:}
+    driver-class-name: org.h2.Driver
+  flyway:
+    enabled: true
+    placeholders:
+      demo_device_token_hash: ${HRMS_DEMO_DEVICE_TOKEN_HASH:e76b6359af8cbe298e362c0e179b90c627cef49db0e9aeeca55175ef799c6b37}

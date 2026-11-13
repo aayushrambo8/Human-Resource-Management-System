@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useTheme } from '@/lib/theme-provider';
 import { initials } from '@/lib/format';
 import { Icon, type IconName } from '@/components/ui/Icon';
-import { BRANDING } from '@/lib/branding';
+import { useBranding } from '@/lib/branding';
 
 interface NavItem {
   href: string;
@@ -27,6 +27,7 @@ const NAV_SECTIONS: NavSection[] = [
     title: 'Workforce Core',
     items: [
       { href: '/', label: 'Overview', icon: 'grid' },
+      { href: '/employee', label: 'Employee Portal', icon: 'user' },
       { href: '/employees', label: 'People Directory', icon: 'users', roles: ['ADMIN', 'HR'] },
       { href: '/departments', label: 'Departments', icon: 'building', roles: ['ADMIN', 'HR'] },
     ],
@@ -34,7 +35,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: 'Time & Operations',
     items: [
-      { href: '/attendance', label: 'Time Tracking', icon: 'clock', roles: ['ADMIN', 'HR'] },
+      { href: '/attendance', label: 'Attendance Ledger', icon: 'clock' },
       { href: '/biometric', label: 'Biometric Access', icon: 'fingerprint', roles: ['ADMIN', 'HR'] },
       { href: '/leave', label: 'Leave & Time Off', icon: 'calendar', badge: 'Active' },
     ],
@@ -43,36 +44,59 @@ const NAV_SECTIONS: NavSection[] = [
     title: 'Personalization & System',
     items: [
       { href: '/settings/appearance', label: 'Appearance Studio', icon: 'sparkles' },
-      { href: '/settings', label: 'Configuration', icon: 'settings' },
+      { href: '/settings/branding', label: 'Branding & Assets', icon: 'building' },
+      { href: '/settings', label: 'Configuration', icon: 'settings', roles: ['ADMIN'] },
     ],
   },
 ];
 
-const PAGE_METADATA: Record<string, { title: string; category: string; description?: string }> = {
+interface PageMeta {
+  title: string;
+  category: string;
+  description?: string;
+  parentHref?: string;
+  parentTitle?: string;
+}
+
+const PAGE_METADATA: Record<string, PageMeta> = {
   '/': { title: 'Executive Overview', category: 'Workforce Core', description: 'Real-time workforce intelligence and attendance tracking' },
-  '/employees': { title: 'People Directory', category: 'Workforce Core', description: 'Enterprise employee records and organizational assignments' },
-  '/employees/new': { title: 'Onboard Employee', category: 'Workforce Core', description: 'Register new personnel into the institutional directory' },
-  '/attendance': { title: 'Time Tracking', category: 'Time & Operations', description: 'Daily attendance logs, check-ins, and timesheet records' },
-  '/leave': { title: 'Leave & Time Off', category: 'Time & Operations', description: 'Review, approve, and schedule institutional leave requests' },
-  '/departments': { title: 'Departments', category: 'Workforce Core', description: 'Divisions, organizational units, and departmental hierarchies' },
-  '/biometric': { title: 'Biometric Access', category: 'Time & Operations', description: 'Hardware terminal telemetry and biometric access checkpoints' },
-  '/settings/appearance': { title: 'Appearance & Themes', category: 'Personalization', description: 'Artistic backgrounds, bespoke accents, and workspace geometry' },
-  '/settings': { title: 'Configuration', category: 'Administration', description: 'System health, identity provisioning, and access controls' },
+  '/employee': { title: 'Employee Portal', category: 'Self Service', description: 'Personal workspace, timesheet stopwatch, and leave desk', parentHref: '/', parentTitle: 'Overview' },
+  '/employees': { title: 'People Directory', category: 'Workforce Core', description: 'Enterprise employee records and organizational assignments', parentHref: '/', parentTitle: 'Overview' },
+  '/employees/new': { title: 'Onboard Employee', category: 'Workforce Core', description: 'Register new personnel into the institutional directory', parentHref: '/employees', parentTitle: 'People Directory' },
+  '/attendance': { title: 'Attendance Ledger', category: 'Time & Operations', description: 'Biometric check-in logs and personal timesheet records', parentHref: '/', parentTitle: 'Overview' },
+  '/leave': { title: 'Leave & Time Off', category: 'Time & Operations', description: 'Review, approve, and schedule institutional leave requests', parentHref: '/', parentTitle: 'Overview' },
+  '/departments': { title: 'Departments', category: 'Workforce Core', description: 'Divisions, organizational units, and departmental hierarchies', parentHref: '/', parentTitle: 'Overview' },
+  '/biometric': { title: 'Biometric Access', category: 'Time & Operations', description: 'Hardware terminal telemetry and biometric access checkpoints', parentHref: '/', parentTitle: 'Overview' },
+  '/settings/appearance': { title: 'Appearance Studio', category: 'Personalization', description: 'Artistic backgrounds, bespoke accents, and workspace geometry', parentHref: '/settings', parentTitle: 'Configuration' },
+  '/settings/branding': { title: 'Branding & Identity', category: 'Personalization', description: 'Institutional logo, login hero image, and organization metadata', parentHref: '/settings', parentTitle: 'Configuration' },
+  '/settings': { title: 'Configuration', category: 'Administration', description: 'System health, identity provisioning, and access controls', parentHref: '/', parentTitle: 'Overview' },
 };
 
-function getPageMeta(pathname: string) {
+function getPageMeta(pathname: string): PageMeta {
   if (pathname === '/employees/new') return PAGE_METADATA['/employees/new'];
-  if (pathname.startsWith('/employees/')) return { title: 'Employee Profile', category: 'Workforce Core', description: 'Personnel records and employment lifecycle' };
-  return PAGE_METADATA[pathname] ?? { title: 'Dashboard', category: 'Workforce' };
+  if (pathname.startsWith('/employees/')) {
+    return {
+      title: 'Employee Profile',
+      category: 'Workforce Core',
+      description: 'Personnel records and employment lifecycle',
+      parentHref: '/employees',
+      parentTitle: 'People Directory',
+    };
+  }
+  return PAGE_METADATA[pathname] ?? { title: 'Dashboard', category: 'Workforce', parentHref: '/', parentTitle: 'Overview' };
 }
 
 function isActivePath(pathname: string, href: string): boolean {
   if (href === '/') return pathname === '/';
+  if (href === '/settings') return pathname === '/settings';
+  if (href === '/settings/appearance') return pathname === '/settings/appearance';
+  if (href === '/settings/branding') return pathname === '/settings/branding';
+  if (href === '/employee') return pathname === '/employee';
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 function ThemeModeToggle() {
-  const { preferences, setMode, resolvedMode } = useTheme();
+  const { setMode, resolvedMode } = useTheme();
   const isDark = resolvedMode === 'dark';
 
   return (
@@ -87,15 +111,63 @@ function ThemeModeToggle() {
   );
 }
 
+interface NotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  time: string;
+  read: boolean;
+  type: 'attendance' | 'leave' | 'terminal' | 'system';
+}
+
+const INITIAL_NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: 'notif-1',
+    title: 'Punch Log Recorded',
+    message: 'Web terminal check-in confirmed successfully.',
+    time: '10m ago',
+    read: false,
+    type: 'attendance',
+  },
+  {
+    id: 'notif-2',
+    title: 'Leave Application Pending',
+    message: 'Sophia Chen submitted annual leave request for Nov 20–23.',
+    time: '1h ago',
+    read: false,
+    type: 'leave',
+  },
+  {
+    id: 'notif-3',
+    title: 'Hardware Biometric Checkpoint',
+    message: 'Turnstile GATE-01 synced with 99.4% biometric recognition score.',
+    time: '3h ago',
+    read: false,
+    type: 'terminal',
+  },
+  {
+    id: 'notif-4',
+    title: 'Holiday Schedule Notice',
+    message: 'Institutional holiday calendar for the upcoming quarter is active.',
+    time: 'Yesterday',
+    read: true,
+    type: 'system',
+  },
+];
+
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { email, roles, isAuthenticated, logout } = useAuth();
-  const { preferences } = useTheme();
+  const { branding } = useBranding();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const notifRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) router.replace('/login');
@@ -104,17 +176,26 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     setSidebarOpen(false);
     setMenuOpen(false);
+    setNotificationsOpen(false);
   }, [pathname]);
 
+  // Handle outside clicks for menus
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!menuOpen && !notificationsOpen) return;
     const onPointerDown = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (menuRef.current && !menuRef.current.contains(target)) {
         setMenuOpen(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(target)) {
+        setNotificationsOpen(false);
       }
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false);
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+        setNotificationsOpen(false);
+      }
     };
     document.addEventListener('mousedown', onPointerDown);
     document.addEventListener('keydown', onKeyDown);
@@ -122,7 +203,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       document.removeEventListener('mousedown', onPointerDown);
       document.removeEventListener('keydown', onKeyDown);
     };
-  }, [menuOpen]);
+  }, [menuOpen, notificationsOpen]);
 
   if (!isAuthenticated) {
     return <div style={{ minHeight: '100vh', background: 'var(--color-canvas)' }} />;
@@ -131,10 +212,19 @@ export function AppShell({ children }: { children: ReactNode }) {
   const userInitials = initials(email.split('@')[0] || 'U');
   const roleLabel = roles.join(' · ') || 'Authorized';
   const meta = getPageMeta(pathname);
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const markAllNotificationsAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
+
+  const markNotificationAsRead = (id: string) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+  };
 
   return (
     <div className="relative min-h-screen">
-      {/* 1. Abstract Background Art Canvas (Visible through all outer margins & spaces) */}
+      {/* 1. Abstract Background Art Canvas */}
       <div className="abstract-bg-canvas" aria-hidden="true" />
 
       {/* 2. Outer Floating Workspace Frame */}
@@ -156,12 +246,18 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             {/* Brand Header */}
             <div className="flex items-center justify-between pb-4 mb-3 border-b border-[var(--color-border)]">
-              <Link href="/" className="flex items-center gap-2.5 min-w-0" aria-label={`${BRANDING.shortName} HRMS`}>
-                <div className="brand-mark">{BRANDING.markLetter}</div>
+              <Link href="/" className="flex items-center gap-2.5 min-w-0" aria-label={`${branding.shortName} HRMS`}>
+                <div className="size-8 rounded-lg bg-white p-1 border border-[var(--color-border)] flex items-center justify-center shrink-0 shadow-2xs">
+                  <img
+                    src={branding.logoUrl}
+                    alt={branding.markLetter}
+                    className="size-full object-contain"
+                  />
+                </div>
                 {!sidebarCollapsed && (
                   <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-bold text-[var(--color-text)] truncate">{BRANDING.name}</span>
-                    <span className="text-[10px] text-[var(--color-text-muted)] font-mono">{BRANDING.division}</span>
+                    <span className="text-sm font-bold text-[var(--color-text)] truncate">{branding.name}</span>
+                    <span className="text-[10px] text-[var(--color-text-muted)] font-mono">{branding.division}</span>
                   </div>
                 )}
               </Link>
@@ -221,42 +317,57 @@ export function AppShell({ children }: { children: ReactNode }) {
                 );
               })}
             </nav>
-
-            {/* Footer Profile */}
-            <div className="pt-3 mt-auto border-t border-[var(--color-border)]">
-              <div
-                className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-[var(--color-canvas-secondary)] cursor-pointer transition-colors"
-                onClick={() => setMenuOpen(!menuOpen)}
-                role="button"
-                tabIndex={0}
-                aria-label="User account details"
-              >
-                <div className="size-8 rounded-lg bg-[var(--color-primary)] text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                  {userInitials}
-                </div>
-                {!sidebarCollapsed && (
-                  <div className="flex flex-col min-w-0 flex-1">
-                    <strong className="text-xs font-semibold text-[var(--color-text)] truncate">{email}</strong>
-                    <span className="text-[10px] text-[var(--color-text-muted)] truncate">{roleLabel}</span>
-                  </div>
-                )}
-              </div>
-            </div>
           </aside>
 
           {/* Floating Main Column (Topbar + Content Panel) */}
           <div className="floating-main-area">
             {/* Floating Topbar */}
             <header className="floating-topbar">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="text-[var(--color-text-muted)] font-medium">{meta.category}</span>
-                  <span className="text-[var(--color-border)]">/</span>
-                  <span className="text-[var(--color-text)] font-semibold">{meta.title}</span>
-                </div>
+              <div className="flex items-center gap-3 min-w-0">
+                {/* Mobile Hamburger Button */}
+                <button
+                  type="button"
+                  className="icon-button lg:hidden text-[var(--color-text)] shrink-0"
+                  onClick={() => setSidebarOpen(true)}
+                  aria-label="Open navigation menu"
+                >
+                  <Icon name="menu" size={16} />
+                </button>
+
+                {/* Accessible Interactive Breadcrumb Navigation */}
+                <nav aria-label="Breadcrumbs" className="flex items-center min-w-0">
+                  <ol className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)] min-w-0">
+                    <li className="flex items-center gap-1.5 shrink-0">
+                      <Link
+                        href="/"
+                        className="hover:text-[var(--color-text)] transition-colors flex items-center gap-1 focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] rounded-xs"
+                      >
+                        <Icon name="grid" size={13} className="opacity-75" />
+                        <span className="hidden sm:inline">Overview</span>
+                      </Link>
+                    </li>
+                    <li aria-hidden="true" className="text-[var(--color-border)] select-none">/</li>
+                    {meta.parentHref && meta.parentTitle && meta.parentHref !== '/' && (
+                      <>
+                        <li className="flex items-center gap-1.5 shrink-0">
+                          <Link
+                            href={meta.parentHref}
+                            className="hover:text-[var(--color-text)] transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] rounded-xs"
+                          >
+                            {meta.parentTitle}
+                          </Link>
+                        </li>
+                        <li aria-hidden="true" className="text-[var(--color-border)] select-none">/</li>
+                      </>
+                    )}
+                    <li className="font-semibold text-[var(--color-text)] truncate" aria-current="page">
+                      {meta.title}
+                    </li>
+                  </ol>
+                </nav>
               </div>
 
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
                 {/* Search Bar */}
                 <div className="relative hidden md:flex items-center">
                   <span className="absolute left-3 text-[var(--color-text-muted)] pointer-events-none">
@@ -265,11 +376,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <input
                     type="text"
                     placeholder="Search people, teams, records..."
-                    className="h-8 pl-8 pr-3 text-xs rounded-xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-hidden focus:ring-1 focus:ring-[var(--color-primary)] w-56 transition-all"
+                    className="h-8 pl-8 pr-3 text-xs rounded-xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-hidden focus:ring-1 focus:ring-[var(--color-primary)] w-48 lg:w-56 transition-all"
                   />
                 </div>
 
-                {/* Appearance studio link */}
+                {/* Appearance Studio Link */}
                 <Link
                   href="/settings/appearance"
                   className="icon-button"
@@ -281,38 +392,136 @@ export function AppShell({ children }: { children: ReactNode }) {
 
                 <ThemeModeToggle />
 
-                {/* Notifications */}
-                <button
-                  type="button"
-                  className="icon-button relative"
-                  aria-label="Activity alerts"
-                  title="Activity alerts"
-                >
-                  <Icon name="bell" size={15} />
-                  <span className="absolute top-2.5 right-2.5 size-1.5 rounded-full bg-[var(--color-primary)] ring-2 ring-[var(--color-surface)]" />
-                </button>
+                {/* Interactive Notifications Popover */}
+                <div className="relative" ref={notifRef}>
+                  <button
+                    type="button"
+                    className="icon-button relative"
+                    aria-label={`Activity alerts (${unreadCount} unread)`}
+                    title="Activity alerts"
+                    aria-expanded={notificationsOpen}
+                    aria-haspopup="dialog"
+                    onClick={() => {
+                      setNotificationsOpen(!notificationsOpen);
+                      setMenuOpen(false);
+                    }}
+                  >
+                    <Icon name="bell" size={15} />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-2 right-2 size-2 rounded-full bg-[var(--color-primary)] ring-2 ring-[var(--color-surface)] animate-pulse" />
+                    )}
+                  </button>
 
-                {/* Account Menu */}
+                  {notificationsOpen && (
+                    <div
+                      className="absolute right-0 top-full mt-2 w-80 sm:w-96 p-2 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150"
+                      role="dialog"
+                      aria-label="Notifications panel"
+                    >
+                      <div className="flex items-center justify-between p-2.5 pb-2 border-b border-[var(--color-border)] mb-1.5">
+                        <div className="flex items-center gap-2">
+                          <strong className="text-xs font-bold text-[var(--color-text)]">Notifications</strong>
+                          {unreadCount > 0 && (
+                            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[var(--color-primary)] text-white">
+                              {unreadCount} new
+                            </span>
+                          )}
+                        </div>
+                        {unreadCount > 0 && (
+                          <button
+                            type="button"
+                            onClick={markAllNotificationsAsRead}
+                            className="text-[10.5px] font-medium text-[var(--color-primary)] hover:underline cursor-pointer"
+                          >
+                            Mark all read
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="max-h-72 overflow-y-auto space-y-1.5 p-1">
+                        {notifications.map((item) => (
+                          <div
+                            key={item.id}
+                            onClick={() => markNotificationAsRead(item.id)}
+                            className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
+                              item.read
+                                ? 'bg-[var(--color-surface)] border-transparent hover:bg-[var(--color-canvas-secondary)] opacity-75'
+                                : 'bg-[var(--color-surface-elevated)] border-[var(--color-border)] hover:border-[var(--color-primary)] shadow-2xs'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <span className="text-xs font-semibold text-[var(--color-text)] truncate">{item.title}</span>
+                              <span className="text-[10px] font-mono text-[var(--color-text-muted)] shrink-0">{item.time}</span>
+                            </div>
+                            <p className="text-[11px] text-[var(--color-text-muted)] leading-relaxed">{item.message}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="pt-2 mt-1 border-t border-[var(--color-border)] text-center">
+                        <Link
+                          href="/attendance"
+                          className="text-[11px] font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors inline-flex items-center gap-1"
+                        >
+                          <span>View system activity ledger</span>
+                          <Icon name="arrow" size={11} />
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Pill Shape User Profile (On Top, pill shape rather than below) */}
                 <div className="relative" ref={menuRef}>
                   <button
-                    className="icon-button font-bold text-xs border border-[var(--color-border)]"
+                    type="button"
+                    className="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full bg-[var(--color-surface-elevated)] border border-[var(--color-border)] hover:border-[var(--color-primary)] hover:bg-[var(--color-canvas-secondary)] transition-all cursor-pointer shadow-2xs group focus:outline-hidden focus:ring-2 focus:ring-[var(--color-primary)]"
                     aria-haspopup="menu"
                     aria-expanded={menuOpen}
-                    aria-label="Account options"
-                    onClick={() => setMenuOpen(!menuOpen)}
+                    aria-label={`Account menu for ${email}`}
+                    onClick={() => {
+                      setMenuOpen(!menuOpen);
+                      setNotificationsOpen(false);
+                    }}
                   >
-                    {userInitials}
+                    <div className="size-6 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center font-bold text-[10.5px] shadow-xs shrink-0">
+                      {userInitials}
+                    </div>
+                    <div className="hidden sm:flex flex-col text-left min-w-0 pr-0.5">
+                      <span className="text-xs font-semibold text-[var(--color-text)] truncate max-w-[120px] leading-tight">
+                        {email.split('@')[0]}
+                      </span>
+                      <span className="text-[9px] font-mono font-medium text-[var(--color-text-muted)] truncate leading-tight uppercase tracking-wider">
+                        {roleLabel}
+                      </span>
+                    </div>
+                    <Icon
+                      name="chevron"
+                      size={11}
+                      className={`text-[var(--color-text-muted)] group-hover:text-[var(--color-text)] transition-transform duration-200 shrink-0 ${
+                        menuOpen ? 'rotate-90' : ''
+                      }`}
+                    />
                   </button>
 
                   {menuOpen && (
                     <div
-                      className="absolute right-0 top-full mt-2 w-52 p-1.5 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150"
+                      className="absolute right-0 top-full mt-2 w-56 p-1.5 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150"
                       role="menu"
+                      aria-label="User account options"
                     >
                       <div className="p-2.5 border-b border-[var(--color-border)] mb-1">
                         <strong className="block text-xs font-semibold text-[var(--color-text)] truncate">{email}</strong>
                         <span className="block text-[10px] text-[var(--color-text-muted)] font-mono">{roleLabel}</span>
                       </div>
+                      <Link
+                        href="/employee"
+                        className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium text-[var(--color-text)] hover:bg-[var(--color-canvas-secondary)] transition-colors"
+                        role="menuitem"
+                      >
+                        <Icon name="user" size={14} />
+                        <span>Employee Profile</span>
+                      </Link>
                       <Link
                         href="/settings/appearance"
                         className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium text-[var(--color-text)] hover:bg-[var(--color-canvas-secondary)] transition-colors"
@@ -322,16 +531,27 @@ export function AppShell({ children }: { children: ReactNode }) {
                         <span>Appearance Studio</span>
                       </Link>
                       <Link
-                        href="/settings"
+                        href="/settings/branding"
                         className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium text-[var(--color-text)] hover:bg-[var(--color-canvas-secondary)] transition-colors"
                         role="menuitem"
                       >
-                        <Icon name="settings" size={14} />
-                        <span>System Settings</span>
+                        <Icon name="building" size={14} />
+                        <span>Branding & Assets</span>
                       </Link>
+                      {roles.includes('ADMIN') && (
+                        <Link
+                          href="/settings"
+                          className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium text-[var(--color-text)] hover:bg-[var(--color-canvas-secondary)] transition-colors"
+                          role="menuitem"
+                        >
+                          <Icon name="settings" size={14} />
+                          <span>System Configuration</span>
+                        </Link>
+                      )}
                       <button
                         role="menuitem"
-                        className="flex items-center gap-2 w-full px-2.5 py-1.5 rounded-xl text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                        type="button"
+                        className="flex items-center gap-2 w-full px-2.5 py-1.5 rounded-xl text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
                         onClick={() => {
                           setMenuOpen(false);
                           void logout();
