@@ -74,6 +74,24 @@ development outside Docker the proxy defaults to `http://localhost:8080`, and fo
 direct cross-origin browser access set `NEXT_PUBLIC_API_URL` in
 `frontend/.env.local` and configure `HRMS_CORS_ALLOWED_ORIGINS` in the root `.env`.
 
-See [backend/README.md](backend/README.md) and [docs/backend-plan.md](docs/backend-plan.md)
+See [backend/README.md](file:///d:/Programming/Git%20Projects/Human-Resource-Management-System/backend/README.md) and [docs/backend-plan.md](file:///d:/Programming/Git%20Projects/Human-Resource-Management-System/docs/backend-plan.md)
 for API behavior and implementation notes. `.horilla-hr/` remains a local-only
 reference and is not used by the application.
+
+## Native Windows Installation & Database Auto-Setup
+
+For native Windows installations without Docker:
+
+```powershell
+.\setup-database.bat
+# Or directly via PowerShell:
+.\scripts\setup-database.ps1
+```
+
+This automated script:
+1. Checks for an existing native PostgreSQL installation in `PATH` or standard Program Files directories.
+2. If absent, automatically invokes `winget` (or downloads the official unattended PostgreSQL installer) to install PostgreSQL 16 silently.
+3. Ensures the Windows PostgreSQL service is started and listening on port `5432`.
+4. Provisions the `hrms` database and `hrms` user role with required privileges.
+5. Executes Flyway schema migrations (`V1` through `V5`), provisioning all institutional tables across shifts, multi-checkpoint biometrics, leave balances, holidays, payroll structures, payslips, audit logs, and branding.
+
