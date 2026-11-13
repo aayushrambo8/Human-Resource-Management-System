@@ -1,8 +1,8 @@
 package com.aayush.hrms.config;
 
-import com.aayush.hrms.auth.AuthRequest;
-import com.aayush.hrms.auth.AuthService;
-import com.aayush.hrms.auth.CreateAccountRequest;
+import com.aayush.hrms.auth.Role;
+import com.aayush.hrms.auth.RoleRepository;
+import com.aayush.hrms.auth.UserAccount;
 import com.aayush.hrms.auth.UserAccountRepository;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -10,7 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Profile("local")
@@ -18,53 +20,46 @@ public class LocalDevBootstrapRunner implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(LocalDevBootstrapRunner.class);
 
-    private final AuthService authService;
     private final UserAccountRepository accountRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public LocalDevBootstrapRunner(AuthService authService, UserAccountRepository accountRepository) {
-        this.authService = authService;
+    public LocalDevBootstrapRunner(
+            UserAccountRepository accountRepository,
+            RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder) {
         this.accountRepository = accountRepository;
+        this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
+    @Transactional
     public void run(ApplicationArguments args) {
-        // 1. Initial Admin Account
-        if (accountRepository.count() == 0) {
-            log.info("Bootstrapping initial local admin account: admin@northstar.edu");
-            try {
-                authService.bootstrap(new AuthRequest("admin@northstar.edu", "Admin@123"));
-                log.info("Local admin account bootstrapped successfully: admin@northstar.edu / Admin@123");
-            } catch (Exception e) {
-                log.warn("Could not bootstrap initial admin account: {}", e.getMessage());
-            }
-        }
+        ensureAccount("admin@northstar.edu", "Admin@123", "ADMIN");
+        ensureAccount("hr@northstar.edu", "Hr@123", "HR");
+        ensureAccount("user@northstar.edu", "User@123", "EMPLOYEE");
+        ensureAccount("admin@institution.local", "admin-password-123", "ADMIN");
+    }
 
-        // Backward-compat admin alias
-        if (accountRepository.findByEmailIgnoreCase("admin@institution.local").isEmpty()) {
-            try {
-                authService.createAccount(new CreateAccountRequest("admin@institution.local", "admin-password-123", Set.of("ADMIN"), null));
-            } catch (Exception ignored) {
-            }
-        }
+    private void ensureAccount(String email, String rawPassword, String roleCode) {
+        try {
+            Role role = roleRepository.findByCode(roleCode)
+                    .orElseThrow(() -> new IllegalStateException("Role not found: " + roleCode));
 
-        // 2. HR Manager Account
-        if (accountRepository.findByEmailIgnoreCase("hr@northstar.edu").isEmpty()) {
-            try {
-                authService.createAccount(new CreateAccountRequest("hr@northstar.edu", "Hr@123", Set.of("HR"), null));
-                log.info("Sample HR account created: hr@northstar.edu / Hr@123 (Roles: [HR])");
-            } catch (Exception e) {
-                log.warn("Could not create sample HR account: {}", e.getMessage());
+            var existing = accountRepository.findByEmailIgnoreCase(email);
+            if (existing.isEmpty()) {
+                UserAccount account = new UserAccount(
+                        email.toLowerCase().trim(),
+                        passwordEncoder.encode(rawPassword),
+                        null,
+                        Set.of(role)
+                );
+                accountRepository.save(account);
+                log.info("Bootstrapped local dev account: {} (Role: {})", email, roleCode);
             }
-        }
-
-        // 3. User / Employee Account
-        if (accountRepository.findByEmailIgnoreCase("user@northstar.edu").isEmpty()) {
-            try {
-                authService.createAccount(new CreateAccountRequest("user@northstar.edu", "User@123", Set.of("EMPLOYEE"), null));
-                log.info("Sample User/Employee account created: user@northstar.edu / User@123 (Roles: [EMPLOYEE])");
-            } catch (Exception e) {
-                log.warn("Could not create sample User account: {}", e.getMessage());
-            }
+        } catch (Exception e) {
+            log.warn("Could not bootstrap local dev account {}: {}", email, e.getMessage());
         }
     }
 }

@@ -11,8 +11,9 @@
   /* Default fallbacks before dynamic JS token injection */
   --color-canvas: #F5EAE0;
   --color-canvas-secondary: #F0DFD2;
-  --color-surface: #FFFFFF;
-  --color-surface-elevated: #FFFDFC;
+  --color-workspace-mat: #F8F5EC; /* Warm Ivory Mat Foundation */
+  --color-surface: #FCFAF5; /* Cream White for Smaller Sections/Boxes */
+  --color-surface-elevated: #FFFDF9; /* Cream White Elevated */
   --color-primary: #E9785F;
   --color-primary-hover: #D9664E;
   --color-secondary: #B77A62;
@@ -35,12 +36,15 @@
   --color-danger: #EF4444;
 
   /* Shadows calibrated for floating layered workspace */
+  --shadow-box: 0 2px 6px -1px rgba(60, 48, 30, 0.08), 0 1px 3px -1px rgba(60, 48, 30, 0.05);
+  --shadow-box-hover: 0 6px 16px -2px rgba(60, 48, 30, 0.12), 0 2px 5px -1px rgba(60, 48, 30, 0.07);
   --shadow-card: 0 4px 16px -2px rgba(48, 59, 75, calc(0.06 * var(--shadow-multiplier))), 0 2px 6px -1px rgba(48, 59, 75, calc(0.04 * var(--shadow-multiplier)));
   --shadow-hover: 0 12px 28px -4px rgba(48, 59, 75, calc(0.12 * var(--shadow-multiplier))), 0 4px 12px -2px rgba(48, 59, 75, calc(0.06 * var(--shadow-multiplier)));
   --shadow-floating: 0 20px 40px -8px rgba(48, 59, 75, calc(0.16 * var(--shadow-multiplier))), 0 8px 16px -4px rgba(48, 59, 75, calc(0.08 * var(--shadow-multiplier)));
 
   /* Legacy bridges & Semantic Tokens */
   --bg: var(--color-canvas);
+  --workspace-mat: var(--color-workspace-mat);
   --surface: var(--color-surface);
   --surface-alt: var(--color-surface-elevated);
   --surface-hover: var(--color-canvas-secondary);
@@ -69,6 +73,10 @@
 }
 
 .dark {
+  --color-workspace-mat: #241E1C;
+  --workspace-mat: var(--color-workspace-mat);
+  --shadow-box: 0 2px 6px -1px rgba(0, 0, 0, 0.40), 0 1px 3px -1px rgba(0, 0, 0, 0.28);
+  --shadow-box-hover: 0 6px 16px -2px rgba(0, 0, 0, 0.55), 0 2px 6px -1px rgba(0, 0, 0, 0.35);
   --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, calc(0.35 * var(--shadow-multiplier))), 0 2px 6px -1px rgba(0, 0, 0, calc(0.25 * var(--shadow-multiplier)));
   --shadow-hover: 0 14px 32px -4px rgba(0, 0, 0, calc(0.55 * var(--shadow-multiplier))), 0 6px 14px -2px rgba(0, 0, 0, calc(0.35 * var(--shadow-multiplier)));
   --shadow-floating: 0 24px 48px -8px rgba(0, 0, 0, calc(0.65 * var(--shadow-multiplier))), 0 10px 20px -4px rgba(0, 0, 0, calc(0.45 * var(--shadow-multiplier)));
@@ -160,24 +168,79 @@ body {
 
 /* Independent Floating Sidebar */
 .floating-sidebar {
-  width: 260px;
+  width: 250px;
   flex-shrink: 0;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--panel-radius);
   box-shadow: var(--shadow-floating);
-  padding: 20px 16px;
+  padding: 20px 12px;
   display: flex;
   flex-direction: column;
   height: 100%;
   backdrop-filter: blur(12px);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
 }
 
 .floating-sidebar.collapsed {
-  width: 76px;
-  padding: 20px 10px;
+  width: 68px;
+  padding: 20px 12px; /* Fixed identical padding guarantees icon column NEVER moves */
+}
+
+/* Sidebar Brand Header */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+  min-height: 48px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.floating-sidebar.collapsed .sidebar-header {
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Smooth Text Folding Containers (Labels fold away, icons remain static) */
+.sidebar-text-fold {
+  display: flex;
+  max-width: 170px;
+  opacity: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-width 0.26s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s ease;
+}
+
+.floating-sidebar.collapsed .sidebar-text-fold {
+  max-width: 0;
+  opacity: 0;
+  pointer-events: none;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Section Title Fold */
+.sidebar-section-title {
+  max-height: 24px;
+  opacity: 0.7;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s ease, margin 0.2s ease;
+  margin-bottom: 4px;
+}
+
+.floating-sidebar.collapsed .sidebar-section-title {
+  max-height: 0;
+  opacity: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  pointer-events: none;
 }
 
 @media (max-width: 1024px) {
@@ -199,22 +262,31 @@ body {
 .floating-nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  height: 42px;
-  padding: 0 14px;
+  gap: 10px;
+  height: 40px;
+  padding: 0 10px;
   border-radius: 12px;
   color: var(--color-text-muted);
   font-size: 13.5px;
   font-weight: 550;
   text-decoration: none;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.15s ease, color 0.15s ease;
   position: relative;
+  overflow: hidden;
+}
+
+.floating-nav-item .nav-icon-slot {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .floating-nav-item:hover {
   background-color: var(--color-canvas-secondary);
   color: var(--color-text);
-  transform: translateX(2px);
 }
 
 .floating-nav-item.active {
@@ -264,11 +336,11 @@ body {
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-/* Floating Main Workspace Panel */
+/* Floating Main Workspace Panel (Warm Ivory Mat Foundation) */
 .floating-workspace-content {
   flex: 1;
   min-height: 0;
-  background-color: var(--color-surface);
+  background-color: var(--color-workspace-mat, #F8F5EC);
   border: 1px solid var(--color-border);
   border-radius: var(--panel-radius);
   box-shadow: var(--shadow-card);
@@ -277,6 +349,17 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   transition: all 0.25s ease;
+}
+
+/* Give all boxed smaller sections on the mat a crisp, delicate drop shadow */
+.shadow-2xs,
+.shadow-xs {
+  box-shadow: var(--shadow-box) !important;
+}
+
+.shadow-2xs:hover,
+.shadow-xs:hover {
+  box-shadow: var(--shadow-box-hover);
 }
 
 .floating-workspace-content::-webkit-scrollbar {
@@ -307,13 +390,13 @@ body {
   background-color: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
   border-radius: var(--card-radius);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-box);
   padding: 20px 22px;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .floating-card:hover {
-  box-shadow: var(--shadow-hover);
+  box-shadow: var(--shadow-box-hover);
   border-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
   transform: translateY(-2px);
 }
@@ -525,7 +608,7 @@ body {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--card-radius);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-box);
   overflow: hidden;
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }

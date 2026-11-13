@@ -7,6 +7,7 @@ export interface ThemeColors {
   canvasSecondary: string;
   surface: string;
   surfaceElevated: string;
+  workspaceMat?: string;
   primary: string;
   primaryHover: string;
   secondary: string;
@@ -35,8 +36,9 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
     light: {
       canvas: '#F5EAE0',
       canvasSecondary: '#F0DFD2',
-      surface: '#FFFFFF',
-      surfaceElevated: '#FFFDFC',
+      surface: '#FCFAF5',
+      surfaceElevated: '#FFFDF9',
+      workspaceMat: '#F8F5EC',
       primary: '#E9785F',
       primaryHover: '#D9664E',
       secondary: '#B77A62',
@@ -51,6 +53,7 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
       canvasSecondary: '#2B2523',
       surface: '#302A28',
       surfaceElevated: '#39302D',
+      workspaceMat: '#282321',
       primary: '#F08A70',
       primaryHover: '#F49B84',
       secondary: '#B98A79',
@@ -69,8 +72,9 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
     light: {
       canvas: '#EAF0E5',
       canvasSecondary: '#E2EBDD',
-      surface: '#FFFFFF',
-      surfaceElevated: '#FBFDF9',
+      surface: '#FAF9F4',
+      surfaceElevated: '#FCFBF7',
+      workspaceMat: '#F5F3EB',
       primary: '#507E63',
       primaryHover: '#3E694F',
       secondary: '#8BAE91',
@@ -85,6 +89,7 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
       canvasSecondary: '#1D2D24',
       surface: '#24352B',
       surfaceElevated: '#2C4033',
+      workspaceMat: '#1E2D25',
       primary: '#8BC39A',
       primaryHover: '#A1D1AA',
       secondary: '#78A88A',
@@ -103,8 +108,9 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
     light: {
       canvas: '#EAF1F8',
       canvasSecondary: '#DFEAF5',
-      surface: '#FFFFFF',
-      surfaceElevated: '#FBFDFF',
+      surface: '#FBFBF8',
+      surfaceElevated: '#FDFCFA',
+      workspaceMat: '#F6F4ED',
       primary: '#527DAF',
       primaryHover: '#406A9B',
       secondary: '#76B6CD',
@@ -119,6 +125,7 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
       canvasSecondary: '#1C2A3C',
       surface: '#24344A',
       surfaceElevated: '#2C4057',
+      workspaceMat: '#1D2A3B',
       primary: '#83B5E8',
       primaryHover: '#9CC8F0',
       secondary: '#70C1D1',
@@ -137,8 +144,9 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
     light: {
       canvas: '#F2E4D9',
       canvasSecondary: '#EAD8CA',
-      surface: '#FFFFFF',
-      surfaceElevated: '#FFFCF9',
+      surface: '#FCFAF6',
+      surfaceElevated: '#FFFDF9',
+      workspaceMat: '#F7F3E9',
       primary: '#B96648',
       primaryHover: '#A65339',
       secondary: '#D38A69',
@@ -153,6 +161,7 @@ export const THEMES: Record<ThemeId, ThemeDefinition> = {
       canvasSecondary: '#30231F',
       surface: '#382924',
       surfaceElevated: '#44312A',
+      workspaceMat: '#2D221E',
       primary: '#E58B68',
       primaryHover: '#F09B78',
       secondary: '#C9876C',

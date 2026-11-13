@@ -28,7 +28,6 @@ export default function LoginPage() {
     try {
       await login(email, password);
       router.push('/');
-      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid credentials. Please verify your username and password.');
     } finally {

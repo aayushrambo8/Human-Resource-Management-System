@@ -50,6 +50,9 @@ function applyThemeTokens(prefs: WorkspacePreferences, resolvedMode: 'light' | '
   }
 
   // Set CSS variables
+  const workspaceMat = baseColors.workspaceMat || (resolvedMode === 'dark' ? baseColors.surface : '#F8F5EC');
+  root.style.setProperty('--color-workspace-mat', workspaceMat);
+  root.style.setProperty('--workspace-mat', workspaceMat);
   root.style.setProperty('--color-canvas', baseColors.canvas);
   root.style.setProperty('--color-canvas-secondary', baseColors.canvasSecondary);
   root.style.setProperty('--color-surface', baseColors.surface);

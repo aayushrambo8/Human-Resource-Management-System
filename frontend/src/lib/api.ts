@@ -69,12 +69,13 @@ export const authApi = {
     const raw = (emailOrUsername || '').trim();
     const normalized = raw.toLowerCase();
 
-    // Map username shortcut or alias (including legacy employee@northstar.edu)
+    // Map username shortcut or alias (including legacy accounts)
     const sample =
       SAMPLE_LOGINS.find(
         (s) => s.email.toLowerCase() === normalized || s.username.toLowerCase() === normalized
       ) ||
-      (normalized === 'employee@northstar.edu' ? SAMPLE_LOGINS.find((s) => s.role === 'EMPLOYEE') : undefined);
+      (normalized === 'employee@northstar.edu' ? SAMPLE_LOGINS.find((s) => s.role === 'EMPLOYEE') : undefined) ||
+      (normalized === 'admin@institution.local' ? SAMPLE_LOGINS.find((s) => s.role === 'ADMIN') : undefined);
 
     const targetEmail = sample ? sample.email : raw;
 
@@ -87,6 +88,7 @@ export const authApi = {
         sample &&
         (password === sample.password ||
           password === 'Employee@123' ||
+          password === 'admin-password-123' ||
           password === `${sample.username}@123` ||
           password === 'password')
       ) {

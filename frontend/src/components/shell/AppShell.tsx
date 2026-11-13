@@ -245,25 +245,23 @@ export function AppShell({ children }: { children: ReactNode }) {
             className={`floating-sidebar ${sidebarCollapsed ? 'collapsed' : ''} ${sidebarOpen ? 'sidebar-open' : ''}`}
           >
             {/* Brand Header */}
-            <div className="flex items-center justify-between pb-4 mb-3 border-b border-[var(--color-border)]">
-              <Link href="/" className="flex items-center gap-2.5 min-w-0" aria-label={`${branding.shortName} HRMS`}>
-                <div className="size-8 rounded-lg bg-white p-1 border border-[var(--color-border)] flex items-center justify-center shrink-0 shadow-2xs">
+            <div className="sidebar-header">
+              <Link href="/" className="flex items-center gap-2.5 min-w-0 shrink-0" aria-label={`${branding.shortName} HRMS`}>
+                <div className="size-8 rounded-lg bg-white p-1 border border-[var(--color-border)] flex items-center justify-center shrink-0 min-w-8 min-h-8 shadow-2xs">
                   <img
                     src={branding.logoUrl}
                     alt={branding.markLetter}
-                    className="size-full object-contain"
+                    className="size-full object-contain shrink-0"
                   />
                 </div>
-                {!sidebarCollapsed && (
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-bold text-[var(--color-text)] truncate">{branding.name}</span>
-                    <span className="text-[10px] text-[var(--color-text-muted)] font-mono">{branding.division}</span>
-                  </div>
-                )}
+                <div className="sidebar-text-fold flex-col min-w-0">
+                  <span className="text-sm font-bold text-[var(--color-text)] truncate">{branding.name}</span>
+                  <span className="text-[10px] text-[var(--color-text-muted)] font-mono truncate">{branding.division}</span>
+                </div>
               </Link>
               <button
                 type="button"
-                className="icon-button hidden lg:inline-grid text-[var(--color-text-muted)]"
+                className="icon-button hidden lg:inline-grid text-[var(--color-text-muted)] shrink-0"
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                 title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                 aria-label="Toggle sidebar collapse"
@@ -273,7 +271,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
 
             {/* Navigation Groups */}
-            <nav className="flex-1 overflow-y-auto space-y-4 pr-0.5" aria-label="Main navigation">
+            <nav className="flex-1 overflow-y-auto space-y-3.5 pr-0.5" aria-label="Main navigation">
               {NAV_SECTIONS.map((section) => {
                 const visibleItems = section.items.filter(
                   (item) => !item.roles || item.roles.some((role) => roles.includes(role))
@@ -282,11 +280,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
                 return (
                   <div key={section.title} className="space-y-1">
-                    {!sidebarCollapsed && (
-                      <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-muted)] opacity-70">
-                        {section.title}
-                      </div>
-                    )}
+                    <div className="sidebar-section-title px-2.5 text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-muted)] opacity-70">
+                      {section.title}
+                    </div>
                     <div className="space-y-1">
                       {visibleItems.map((item) => {
                         const active = isActivePath(pathname, item.href);
@@ -298,17 +294,17 @@ export function AppShell({ children }: { children: ReactNode }) {
                             aria-current={active ? 'page' : undefined}
                             title={sidebarCollapsed ? item.label : undefined}
                           >
-                            <Icon name={item.icon} size={16} />
-                            {!sidebarCollapsed && (
-                              <div className="flex items-center justify-between flex-1 min-w-0">
-                                <span className="truncate">{item.label}</span>
-                                {item.badge && (
-                                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-[var(--color-surface-elevated)] text-[var(--color-text-muted)] border border-[var(--color-border)]">
-                                    {item.badge}
-                                  </span>
-                                )}
-                              </div>
-                            )}
+                            <div className="nav-icon-slot">
+                              <Icon name={item.icon} size={16} />
+                            </div>
+                            <div className="sidebar-text-fold flex-1 min-w-0 items-center justify-between">
+                              <span className="truncate">{item.label}</span>
+                              {item.badge && (
+                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-[var(--color-surface-elevated)] text-[var(--color-text-muted)] border border-[var(--color-border)] ml-2 shrink-0">
+                                  {item.badge}
+                                </span>
+                              )}
+                            </div>
                           </Link>
                         );
                       })}
