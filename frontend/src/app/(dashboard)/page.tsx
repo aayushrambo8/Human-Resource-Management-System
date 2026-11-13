@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { attendanceApi, employeeApi, leaveApi } from '@/lib/api';
@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/auth-context';
 import { gates } from '@/lib/permissions';
 import { BRANDING } from '@/lib/branding';
 import { Icon } from '@/components/ui/Icon';
-import { formatDate, formatTime, initials } from '@/lib/format';
+import { formatDate, formatTime, initials, isToday } from '@/lib/format';
 import type { AttendanceRecord, Employee, LeaveRequest } from '@/lib/types';
 
 import { LiveTimesheetStopwatch } from '@/components/dashboard/LiveTimesheetStopwatch';
@@ -116,7 +116,8 @@ const UPCOMING_EVENTS = [
 ];
 
 export default function DashboardPage() {
-  const { roles } = useAuth();
+  const { roles, email } = useAuth();
+  const isHrOrAdmin = roles.includes('ADMIN') || roles.includes('HR');
   const canReadDirectory = gates.canReadDirectory(roles);
   const canReviewLeaves = gates.canReviewLeaves(roles);
 
@@ -158,6 +159,46 @@ export default function DashboardPage() {
 
   const combinedAttendance = [...persistedPunches, ...rawAttendance];
 
+  // User identity derivation for role-scoped attendance display
+  const userDisplayName = email
+    ? email.split('@')[0].split('.').map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')
+    : 'Current Employee';
+  const userCode = roles.includes('ADMIN') ? 'ADMIN-01' : roles.includes('HR') ? 'HR-01' : 'EMP-01';
+
+  // Strict isolation: Employees only see their own attendance punches
+  const myPunches = persistedPunches.filter((punch) => {
+    if (punch.employeeId === `emp-${email}` || punch.employeeId === 'emp-curr') return true;
+    if (punch.employeeName?.toLowerCase() === userDisplayName.toLowerCase()) return true;
+    if (punch.employeeName?.toLowerCase() === email.split('@')[0].toLowerCase()) return true;
+    return false;
+  });
+
+  const defaultPersonalPunch = useMemo<AttendanceRecord>(
+    () => ({
+      id: `att-self-${email || 'user'}`,
+      employeeId: `emp-${email || 'user'}`,
+      employeeCode: userCode,
+      employeeName: userDisplayName,
+      deviceCode: 'WEB-TERMINAL',
+      punchTime: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+      direction: 'IN',
+    }),
+    [email, userCode, userDisplayName]
+  );
+
+  const attendanceRecordsToDisplay = useMemo(() => {
+    return isHrOrAdmin
+      ? combinedAttendance
+      : myPunches.length > 0
+      ? myPunches
+      : [defaultPersonalPunch];
+  }, [isHrOrAdmin, combinedAttendance, myPunches, defaultPersonalPunch]);
+
+  // Dashboard requirement: Display ONLY today's records. Full history requires opening Full Ledger.
+  const todayAttendanceRecords = useMemo(() => {
+    return attendanceRecordsToDisplay.filter((item) => isToday(item.punchTime));
+  }, [attendanceRecordsToDisplay]);
+
   const leaves = leavesQuery.data && leavesQuery.data.length > 0
     ? leavesQuery.data
     : SAMPLE_LEAVES;
@@ -190,8 +231,9 @@ export default function DashboardPage() {
       direction: punch.direction,
       deviceCode: punch.deviceCode,
       time: punch.time,
-      employeeName: 'Current User',
-      employeeCode: 'EMP-01',
+      employeeName: userDisplayName,
+      employeeCode: userCode,
+      employeeId: `emp-${email}`,
     });
   };
 
@@ -291,10 +333,12 @@ export default function DashboardPage() {
             <Icon name="fingerprint" size={14} />
             <span>Biometric Check-In</span>
           </button>
-          <Link href="/employees/new" className="btn btn-primary text-xs">
-            <Icon name="plus" size={14} />
-            <span>Onboard Personnel</span>
-          </Link>
+          {isHrOrAdmin && (
+            <Link href="/employees/new" className="btn btn-primary text-xs">
+              <Icon name="plus" size={14} />
+              <span>Onboard Personnel</span>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -303,42 +347,54 @@ export default function DashboardPage() {
         {/* KPI 1 */}
         <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-2xs hover:border-[var(--border-strong)] transition-all">
           <div className="flex items-center justify-between text-xs font-medium text-[var(--text-muted)] mb-2">
-            <span>Total Workforce</span>
-            <Icon name="users" size={14} className="text-[var(--text-faint)]" />
+            <span>{isHrOrAdmin ? 'Total Workforce' : 'My Shift Status'}</span>
+            <Icon name={isHrOrAdmin ? 'users' : 'clock'} size={14} className="text-[var(--text-faint)]" />
           </div>
           <div className="flex items-baseline justify-between">
             <div className="text-2xl font-bold tracking-tight tabular-nums text-[var(--text)]">
-              {activeEmployees}
+              {isHrOrAdmin ? activeEmployees : isCheckedIn ? 'Clocked In' : 'Clocked Out'}
             </div>
-            <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-              <Icon name="trending-up" size={12} />
-              +12% MoM
+            <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${
+              isHrOrAdmin || isCheckedIn ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500'
+            }`}>
+              <Icon name={isHrOrAdmin ? 'trending-up' : isCheckedIn ? 'check' : 'alert'} size={12} />
+              {isHrOrAdmin ? '+12% MoM' : isCheckedIn ? 'Active Now' : 'Off Shift'}
             </span>
           </div>
           <div className="text-[11px] text-[var(--text-faint)] mt-1.5 flex items-center justify-between">
-            <span>{employees.length} enrolled personnel</span>
-            <span className="font-mono text-[10px] text-emerald-600">Active</span>
+            <span>{isHrOrAdmin ? `${employees.length} enrolled personnel` : 'Terminal: WEB-TERMINAL'}</span>
+            <span className="font-mono text-[10px] text-emerald-600">{isHrOrAdmin ? 'Active' : 'Biometric OK'}</span>
           </div>
         </div>
 
         {/* KPI 2 */}
         <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-2xs hover:border-[var(--border-strong)] transition-all">
           <div className="flex items-center justify-between text-xs font-medium text-[var(--text-muted)] mb-2">
-            <span>Present Today</span>
+            <span>{isHrOrAdmin ? 'Present Today' : 'Today Hours Logged'}</span>
             <Icon name="clock" size={14} className="text-[var(--text-faint)]" />
           </div>
           <div className="flex items-baseline justify-between">
             <div className="text-2xl font-bold tracking-tight tabular-nums text-[var(--text)]">
-              {presentCount} <span className="text-sm font-medium text-[var(--text-muted)]">/ {activeEmployees}</span>
+              {isHrOrAdmin ? (
+                <>
+                  {presentCount} <span className="text-sm font-medium text-[var(--text-muted)]">/ {activeEmployees}</span>
+                </>
+              ) : (
+                `${Math.floor(activeSeconds / 3600)}h ${Math.floor((activeSeconds % 3600) / 60)}m`
+              )}
             </div>
             <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-              {activeEmployees > 0 ? Math.round((presentCount / activeEmployees) * 100) : 0}% workforce
+              {isHrOrAdmin ? `${activeEmployees > 0 ? Math.round((presentCount / activeEmployees) * 100) : 0}% workforce` : 'Target: 8h 00m'}
             </span>
           </div>
           <div className="w-full bg-[var(--surface-alt)] rounded-full h-1 mt-2.5 overflow-hidden">
             <div
               className="bg-emerald-500 h-1 rounded-full transition-all duration-300"
-              style={{ width: `${activeEmployees > 0 ? Math.min(100, Math.round((presentCount / activeEmployees) * 100)) : 0}%` }}
+              style={{
+                width: isHrOrAdmin
+                  ? `${activeEmployees > 0 ? Math.min(100, Math.round((presentCount / activeEmployees) * 100)) : 0}%`
+                  : `${Math.min(100, Math.round((activeSeconds / 28800) * 100))}%`
+              }}
             />
           </div>
         </div>
@@ -346,40 +402,42 @@ export default function DashboardPage() {
         {/* KPI 3 */}
         <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-2xs hover:border-[var(--border-strong)] transition-all">
           <div className="flex items-center justify-between text-xs font-medium text-[var(--text-muted)] mb-2">
-            <span>On Scheduled Leave</span>
+            <span>{isHrOrAdmin ? 'On Scheduled Leave' : 'My Leave Balance'}</span>
             <Icon name="calendar" size={14} className="text-[var(--text-faint)]" />
           </div>
           <div className="flex items-baseline justify-between">
             <div className="text-2xl font-bold tracking-tight tabular-nums text-[var(--text)]">
-              {approvedLeaves}
+              {isHrOrAdmin ? approvedLeaves : '18.5 Days'}
             </div>
             <span className="text-[11px] font-medium text-[var(--text-muted)]">
-              Authorized
+              {isHrOrAdmin ? 'Authorized' : 'Paid Time Off'}
             </span>
           </div>
           <div className="text-[11px] text-[var(--text-faint)] mt-1.5 flex items-center justify-between">
-            <span>Operations capacity: 94%</span>
-            <span className="text-[10px] font-mono">Normal</span>
+            <span>{isHrOrAdmin ? 'Operations capacity: 94%' : 'Annual allowance: 24d'}</span>
+            <span className="text-[10px] font-mono">{isHrOrAdmin ? 'Normal' : 'Accruing'}</span>
           </div>
         </div>
 
         {/* KPI 4 */}
         <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-2xs hover:border-[var(--border-strong)] transition-all">
           <div className="flex items-center justify-between text-xs font-medium text-[var(--text-muted)] mb-2">
-            <span>Pending Approvals</span>
-            <Icon name="alert" size={14} className="text-[var(--text-faint)]" />
+            <span>{isHrOrAdmin ? 'Pending Approvals' : "Today's Punches"}</span>
+            <Icon name={isHrOrAdmin ? 'alert' : 'fingerprint'} size={14} className="text-[var(--text-faint)]" />
           </div>
           <div className="flex items-baseline justify-between">
             <div className="text-2xl font-bold tracking-tight tabular-nums text-[var(--text)]">
-              {pendingLeaves}
+              {isHrOrAdmin ? pendingLeaves : todayAttendanceRecords.length}
             </div>
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600 dark:text-amber-400">
-              Action Required
+            <span className={`inline-flex items-center gap-1 text-[11px] font-medium ${
+              isHrOrAdmin ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'
+            }`}>
+              {isHrOrAdmin ? 'Action Required' : 'Today'}
             </span>
           </div>
           <div className="text-[11px] text-[var(--text-faint)] mt-1.5 flex items-center justify-between">
-            <span>Average turnaround: 2.1h</span>
-            <span className="font-mono text-[10px]">Queue</span>
+            <span>{isHrOrAdmin ? 'Average turnaround: 2.1h' : 'Shift events'}</span>
+            <span className="font-mono text-[10px]">{isHrOrAdmin ? 'Queue' : 'Live'}</span>
           </div>
         </div>
       </div>
@@ -390,29 +448,41 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-semibold text-[var(--text)]">
-                Weekly Attendance & Timesheet Log
-              </h3>
-              <p className="text-xs text-[var(--text-muted)]">
-                Real-time punch entries with automatic anomaly flags
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-[var(--text)]">
+                  {isHrOrAdmin ? "Today's Attendance & Timesheet Log" : "Today's Attendance & Timesheet Log"}
+                </h3>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
+                  Today Only
+                </span>
+              </div>
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                {isHrOrAdmin
+                  ? 'Real-time punch entries for today only. For past days and grouped timesheets, open Full Ledger.'
+                  : 'Your live verified punch entries for today. Open Full Ledger for daily grouped timesheets.'}
               </p>
             </div>
-            <Link href="/attendance" className="text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text)] flex items-center gap-1">
+            <Link
+              href="/attendance"
+              className="text-xs font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)] flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface-alt)] shadow-2xs hover:bg-[var(--surface)] transition-all"
+            >
               <span>Full Ledger</span>
               <Icon name="arrow" size={12} />
             </Link>
           </div>
 
           <EnterpriseTable
-            data={combinedAttendance}
+            data={todayAttendanceRecords}
             columns={attendanceColumns}
             keyExtractor={(item) => item.id}
-            searchPlaceholder="Filter biometric check-ins..."
+            searchPlaceholder="Filter today's biometric check-ins..."
             searchField={(item) => `${item.employeeName} ${item.employeeCode} ${item.deviceCode}`}
             filterOptions={[
               { label: 'Check-Ins', value: 'IN', filterFn: (i) => i.direction === 'IN' },
               { label: 'Check-Outs', value: 'OUT', filterFn: (i) => i.direction === 'OUT' },
             ]}
+            emptyTitle="No attendance logs today"
+            emptyDescription="No biometric check-ins recorded for today yet. Use Biometric Check-In or the stopwatch to clock in, or open Full Ledger to view past days."
           />
         </div>
 
@@ -532,7 +602,7 @@ export default function DashboardPage() {
       {punchModalOpen && (
         <QuickPunchModal
           isOpen={punchModalOpen}
-          userEmail="admin@northstar.edu"
+          userEmail={email || 'user@northstar.edu'}
           onClose={() => setPunchModalOpen(false)}
           onPunchSuccess={handleManualPunch}
         />

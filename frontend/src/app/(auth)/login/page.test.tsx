@@ -43,7 +43,7 @@ describe('LoginPage - Split Screen Layout & Form Box', () => {
     // Left section: Organization visual presentation
     expect(screen.getByRole('region', { name: /institution showcase/i })).toBeInTheDocument();
     expect(screen.getAllByText(new RegExp(BRANDING.name, 'i')).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText(new RegExp(BRANDING.tagline, 'i'))).toBeInTheDocument();
+    expect(screen.getByText(/Intelligent Workforce Operations/i)).toBeInTheDocument();
     expect(screen.getByAltText(/Birla Institute of Technology Emblem/i)).toHaveAttribute('src', BRANDING.logoUrl);
     expect(screen.getByText(/Biometric Telemetry/i)).toBeInTheDocument();
 

@@ -95,7 +95,30 @@ body {
   color: var(--color-text);
   font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   transition: background-color 0.3s ease;
+}
+
+/* Universal scrollbar removal: smooth scrolling preserved without visible scrollbars */
+html,
+body,
+.workspace-frame,
+.floating-workspace-shell,
+.floating-workspace-content,
+.floating-sidebar,
+nav,
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
 }
 
 /* The Fixed Abstract Background Canvas */
@@ -360,21 +383,6 @@ body {
 .shadow-2xs:hover,
 .shadow-xs:hover {
   box-shadow: var(--shadow-box-hover);
-}
-
-.floating-workspace-content::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-.floating-workspace-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-.floating-workspace-content::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 9999px;
-}
-.floating-workspace-content::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
 }
 
 @media (max-width: 640px) {

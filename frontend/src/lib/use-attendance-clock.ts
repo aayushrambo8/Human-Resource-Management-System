@@ -130,10 +130,10 @@ export function useAttendanceClock() {
     });
   }, []);
 
-  const addPunch = useCallback((punch: { direction: 'IN' | 'OUT'; deviceCode: string; time: string; employeeName?: string; employeeCode?: string }) => {
+  const addPunch = useCallback((punch: { direction: 'IN' | 'OUT'; deviceCode: string; time: string; employeeName?: string; employeeCode?: string; employeeId?: string }) => {
     const record: AttendanceRecord = {
       id: `punch-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      employeeId: 'emp-curr',
+      employeeId: punch.employeeId || 'emp-curr',
       employeeCode: punch.employeeCode || 'EMP-01',
       employeeName: punch.employeeName || 'Current User',
       deviceCode: punch.deviceCode || 'WEB-TERMINAL',

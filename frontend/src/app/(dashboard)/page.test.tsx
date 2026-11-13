@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import DashboardPage from '@/app/(dashboard)/page';
 import { attendanceApi, departmentApi, employeeApi, healthApi, leaveApi } from '@/lib/api';
@@ -59,7 +59,7 @@ const mockAttendance = {
       employeeCode: 'EMP-01',
       employeeName: 'Elena Rostova',
       deviceCode: 'BIO-GATE-A',
-      punchTime: '2026-11-12T09:00:00Z',
+      punchTime: new Date().toISOString(),
       direction: 'IN',
     },
   ],
@@ -98,7 +98,7 @@ describe('DashboardPage - Timesheet & Attendance Tracker UI', () => {
     expect(await screen.findByText(/Daily Attendance Stopwatch/i)).toBeInTheDocument();
     expect(screen.getByText(/Weekly Working Hours/i)).toBeInTheDocument();
     expect(screen.getByText(/On-Time Arrival Rate/i)).toBeInTheDocument();
-    expect(screen.getByText(/Weekly Attendance & Timesheet Log/i)).toBeInTheDocument();
+    expect(screen.getByText(/Today's Attendance & Timesheet Log/i)).toBeInTheDocument();
     expect(screen.getAllByText(new RegExp(BRANDING.name, 'i')).length).toBeGreaterThanOrEqual(1);
   });
 
@@ -139,5 +139,21 @@ describe('DashboardPage - Timesheet & Attendance Tracker UI', () => {
     await waitFor(() => {
       expect(leaveApi.decide).toHaveBeenCalledWith('leave-1', { status: 'APPROVED' });
     });
+  });
+
+  it('isolates attendance data so an employee only sees their own attendance log', async () => {
+    renderWithProviders(<DashboardPage />, { email: 'user@northstar.edu', roles: ['EMPLOYEE'] });
+
+    // The heading reflects personal ledger
+    expect(await screen.findByText(/Today's Attendance & Timesheet Log/i)).toBeInTheDocument();
+    expect(screen.getByText(/My Shift Status/i)).toBeInTheDocument();
+    expect(screen.getByText(/Today Hours Logged/i)).toBeInTheDocument();
+
+    // The attendance table contains the employee's record and never other employees
+    const attendanceTable = screen.getByRole('table');
+    expect(within(attendanceTable).getByText(/User/i)).toBeInTheDocument();
+    expect(within(attendanceTable).queryByText(/Elena Rostova/i)).not.toBeInTheDocument();
+    expect(within(attendanceTable).queryByText(/Marcus Vance/i)).not.toBeInTheDocument();
+    expect(within(attendanceTable).queryByText(/Sophia Chen/i)).not.toBeInTheDocument();
   });
 });

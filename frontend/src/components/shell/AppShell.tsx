@@ -320,16 +320,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             {/* Floating Topbar */}
             <header className="floating-topbar">
               <div className="flex items-center gap-3 min-w-0">
-                {/* Mobile Hamburger Button */}
-                <button
-                  type="button"
-                  className="icon-button lg:hidden text-[var(--color-text)] shrink-0"
-                  onClick={() => setSidebarOpen(true)}
-                  aria-label="Open navigation menu"
-                >
-                  <Icon name="menu" size={16} />
-                </button>
-
                 {/* Accessible Interactive Breadcrumb Navigation */}
                 <nav aria-label="Breadcrumbs" className="flex items-center min-w-0">
                   <ol className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)] min-w-0">
