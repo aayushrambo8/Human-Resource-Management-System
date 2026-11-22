@@ -92,10 +92,10 @@ export function QuickPunchModal({
         />
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.96 }}
-          transition={{ duration: 0.18, ease: 'easeOut' }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.20, ease: 'easeOut' }}
           className="relative w-full max-w-md rounded-3xl bg-[var(--surface)] border border-[var(--border)] p-6 shadow-2xl z-10 space-y-5"
         >
           <div className="flex items-center justify-between">
@@ -104,10 +104,10 @@ export function QuickPunchModal({
                 <Icon name="clock" size={18} />
               </div>
               <div>
-                <h3 id="punch-modal-title" className="text-base font-bold text-[var(--text)]">
+                <h3 id="punch-modal-title" className="text-base font-bold text-[var(--text)] text-balance">
                   Live Attendance Check-In
                 </h3>
-                <p className="text-xs text-[var(--text-muted)]">
+                <p className="text-xs text-[var(--text-muted)] text-balance">
                   Biometric checkpoint synchronization · {BRANDING.shortName}
                 </p>
               </div>
@@ -116,7 +116,7 @@ export function QuickPunchModal({
             <button
               onClick={onClose}
               type="button"
-              className="text-[var(--text-muted)] hover:text-[var(--text)] p-1 rounded-lg cursor-pointer"
+              className="text-[var(--text-muted)] hover:text-[var(--text)] p-1 rounded-lg cursor-pointer hit-slop active:scale-[0.97]"
               aria-label="Close dialog"
             >
               <Icon name="close" size={16} />
@@ -137,9 +137,9 @@ export function QuickPunchModal({
 
           {successMessage ? (
             <motion.div
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-center space-y-1"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-center space-y-1 animate-success-pulse"
             >
               <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
                 {successMessage}
@@ -203,14 +203,14 @@ export function QuickPunchModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="btn btn-secondary text-xs"
+                  className="btn btn-secondary text-xs active:scale-[0.97]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs cursor-pointer transition-transform active:scale-[0.97]"
                 >
                   {isSubmitting ? 'Recording...' : 'Confirm Attendance'}
                 </button>

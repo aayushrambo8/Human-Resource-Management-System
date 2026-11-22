@@ -157,10 +157,10 @@ export function LiveTimesheetStopwatch({
       <div className="relative z-10 flex items-center gap-2 pt-1">
         <motion.button
           whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          whileTap={{ scale: 0.97 }}
           type="button"
           onClick={handleAction}
-          className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+          className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.97] ${
             isCheckedIn
               ? 'bg-[var(--color-surface-elevated)] text-[var(--color-danger)] border border-[var(--color-border)] hover:bg-[var(--color-canvas-secondary)] shadow-xs'
               : 'btn-primary'
@@ -183,7 +183,7 @@ export function LiveTimesheetStopwatch({
           <button
             type="button"
             onClick={handleBreak}
-            className="py-2.5 px-3 rounded-xl font-semibold text-xs bg-[var(--color-surface-elevated)] hover:bg-[var(--color-canvas-secondary)] text-[var(--color-text)] border border-[var(--color-border)] transition-colors cursor-pointer shrink-0"
+            className="py-2.5 px-3 rounded-xl font-semibold text-xs bg-[var(--color-surface-elevated)] hover:bg-[var(--color-canvas-secondary)] text-[var(--color-text)] border border-[var(--color-border)] transition-transform active:scale-[0.97] cursor-pointer shrink-0"
           >
             {currentIsOnBreak ? 'Resume' : 'Break'}
           </button>

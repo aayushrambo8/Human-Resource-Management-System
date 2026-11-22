@@ -38,7 +38,11 @@ export default function LeavePage() {
     setReviewError('');
     setBusyId(id);
     try {
-      await leaveApi.decide(id, { status });
+      const updated = await leaveApi.decide(id, { status });
+      queryClient.setQueryData<LeaveRequest[]>(['leaves'], (old) => {
+        if (!old) return [updated];
+        return old.map((l) => (l.id === id ? { ...l, status, reviewedAt: updated.reviewedAt || new Date().toISOString() } : l));
+      });
       await queryClient.invalidateQueries({ queryKey: ['leaves'] });
     } catch (error) {
       setReviewError(getErrorMessage(error, 'Could not record the decision.'));

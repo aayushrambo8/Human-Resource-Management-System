@@ -422,13 +422,14 @@ nav,
   font-weight: 600;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
   text-decoration: none;
   white-space: nowrap;
 }
 
-.btn:active {
-  transform: scale(0.98);
+.btn:active,
+.interactive-press:active {
+  transform: scale(0.97); /* Rule 4: Scale buttons to 0.97 on press */
 }
 
 .btn-primary {
@@ -464,13 +465,27 @@ nav,
   border: 1px solid transparent;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: all 0.15s ease;
+  position: relative;
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+/* Rule 13: Hit slop - adds invisible 8px tap margin around small icon buttons */
+.icon-button::after,
+.hit-slop::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  cursor: pointer;
 }
 
 .icon-button:hover {
   background-color: var(--color-canvas-secondary);
   color: var(--color-text);
   border-color: var(--color-border);
+}
+
+.icon-button:active {
+  transform: scale(0.97); /* Rule 4: Scale on press */
 }
 
 /* Modal Dialog */
@@ -486,6 +501,7 @@ nav,
   justify-content: center;
   padding: 20px;
   overflow-y: auto;
+  animation: modalBackdropIn 0.2s cubic-bezier(0.16, 1, 0.3, 1); /* Rule 1: Ease out for entrances */
 }
 
 .modal,
@@ -501,6 +517,95 @@ nav,
   flex-direction: column;
   position: relative;
   outline: none;
+  transform-origin: center center;
+  animation: modalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1); /* Rule 10: start at scale 0.95 */
+}
+
+@keyframes modalBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95); /* Rule 10: Start popovers/modals at scale 0.95 */
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Rule 2 & 10-12: Popover transitions (180ms ease-out, origin from trigger) */
+.popover-menu-tr {
+  transform-origin: top right;
+  animation: popoverOriginIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.popover-menu-tl {
+  transform-origin: top left;
+  animation: popoverOriginIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popoverOriginIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Rule 8: Use a pulse to confirm success */
+@keyframes successConfirmPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.animate-success-pulse {
+  animation: successConfirmPulse 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Rule 3 (Typography): Underline offset so descenders like g, y, p aren't chopped */
+a:not([class*="no-underline"]) {
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+  text-decoration-skip-ink: auto;
+}
+
+/* Rule 4 (Typography): sup tag line-height 0 to prevent row spacing jumps */
+sup, sub {
+  line-height: 0;
+  vertical-align: baseline;
+  position: relative;
+  top: -0.4em;
+}
+sub {
+  top: 0.4em;
+}
+
+/* Rule 16 & 17 (Interaction): Tabular numbers & Balanced headlines */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+h1, h2, h3, h4, .text-balance {
+  text-wrap: balance;
+}
+
+/* Reduced Motion Accessibility Guardrail */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .modal-header {

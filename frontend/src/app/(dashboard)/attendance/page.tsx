@@ -896,13 +896,14 @@ export default function AttendancePage() {
             <LoadingState label="Loading biometric attendance ledger..." />
           </div>
         ) : filteredDayGroups.length > 0 ? (
-          filteredDayGroups.map((group) => {
+          filteredDayGroups.map((group, groupIdx) => {
             const isCollapsed = collapsedDays.has(group.dateKey);
 
             return (
               <div
                 key={group.dateKey}
-                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xs overflow-hidden transition-all"
+                style={{ animationDelay: `${groupIdx * 30}ms` }}
+                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xs overflow-hidden transition-all animate-in fade-in duration-200"
               >
                 {/* Day Header Bar */}
                 <div
@@ -915,7 +916,7 @@ export default function AttendancePage() {
                       toggleDayCollapse(group.dateKey);
                     }
                   }}
-                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 bg-[var(--color-surface-elevated)] border-b border-[var(--color-border)] cursor-pointer select-none hover:bg-[var(--color-surface)] transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 bg-[var(--color-surface-elevated)] border-b border-[var(--color-border)] cursor-pointer select-none hover:bg-[var(--color-surface)] transition-colors active:scale-[0.99]"
                 >
                   <div className="flex items-center gap-3">
                     <div className="size-8 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] shrink-0">
@@ -926,7 +927,7 @@ export default function AttendancePage() {
                         <span className="font-bold text-sm text-[var(--color-text)]">
                           {group.dayHeader.label}
                         </span>
-                        <span className="text-xs text-[var(--color-text-muted)] font-mono">
+                        <span className="text-xs text-[var(--color-text-muted)] font-mono tabular-nums">
                           ({group.dayHeader.dateFormatted})
                         </span>
                         {group.dayHeader.isToday && (
@@ -941,8 +942,8 @@ export default function AttendancePage() {
                         )}
                       </div>
                       <div className="text-[11px] text-[var(--color-text-muted)] mt-0.5">
-                        {group.records.length} punch{group.records.length > 1 ? 'es' : ''} recorded • Daily logged time:{' '}
-                        <span className="font-semibold text-[var(--color-text)]">{group.totalHoursFormatted}</span>
+                        <span className="tabular-nums">{group.records.length}</span> punch{group.records.length > 1 ? 'es' : ''} recorded • Daily logged time:{' '}
+                        <span className="font-semibold text-[var(--color-text)] tabular-nums">{group.totalHoursFormatted}</span>
                       </div>
                     </div>
                   </div>

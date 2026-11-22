@@ -438,7 +438,7 @@ insert into work_shifts (
     is_flexible, active, created_at, updated_at
 ) values (
     '53000000-0000-0000-0000-000000000001',
-    '10000000-0000-0000-0000-000000000001',
+    '11111111-1111-1111-1111-111111111111',
     'GEN_09_18',
     'Standard General Shift (09:00 - 18:00)',
     '09:00:00',
@@ -459,10 +459,10 @@ insert into leave_types (
     id, company_id, code, name, description, annual_quota, is_paid, carry_forward_allowed,
     max_carry_forward_days, encashment_allowed, requires_documentation, active, created_at, updated_at
 ) values
-('54000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', 'CL', 'Casual Leave', 'Short-term casual absence', 12.00, true, false, 0.00, false, false, true, now(), now()),
-('54000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', 'SL', 'Sick Leave', 'Medical & health-related leaves', 10.00, true, true, 5.00, false, true, true, now(), now()),
-('54000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001', 'PL', 'Privilege / Earned Leave', 'Annual planned paid vacation leaves', 18.00, true, true, 30.00, true, false, true, now(), now()),
-('54000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000001', 'LWP', 'Leave Without Pay', 'Unpaid loss of pay leaves', 0.00, false, false, 0.00, false, false, true, now(), now());
+('54000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'CL', 'Casual Leave', 'Short-term casual absence', 12.00, true, false, 0.00, false, false, true, now(), now()),
+('54000000-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111', 'SL', 'Sick Leave', 'Medical & health-related leaves', 10.00, true, true, 5.00, false, true, true, now(), now()),
+('54000000-0000-0000-0000-000000000003', '11111111-1111-1111-1111-111111111111', 'PL', 'Privilege / Earned Leave', 'Annual planned paid vacation leaves', 18.00, true, true, 30.00, true, false, true, now(), now()),
+('54000000-0000-0000-0000-000000000004', '11111111-1111-1111-1111-111111111111', 'LWP', 'Leave Without Pay', 'Unpaid loss of pay leaves', 0.00, false, false, 0.00, false, false, true, now(), now());
 
 -- Seed default biometric kiosk checkpoint
 insert into biometric_checkpoints (
@@ -470,7 +470,7 @@ insert into biometric_checkpoints (
     serial_number, is_online, last_heartbeat, active, created_at, updated_at
 ) values (
     '55000000-0000-0000-0000-000000000001',
-    '10000000-0000-0000-0000-000000000001',
+    '11111111-1111-1111-1111-111111111111',
     'CHK-MAIN-ENTRANCE',
     'Main Building Entrance Kiosk',
     'Ground Floor Reception',
@@ -492,7 +492,7 @@ insert into system_branding_settings (
     created_at, updated_at
 ) values (
     '56000000-0000-0000-0000-000000000001',
-    '10000000-0000-0000-0000-000000000001',
+    '11111111-1111-1111-1111-111111111111',
     'Enterprise Institute HRMS',
     '/logo.svg',
     '/favicon.ico',

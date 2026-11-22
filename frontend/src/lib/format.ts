@@ -98,3 +98,29 @@ export function formatDayHeader(dateStr: string): { label: string; dateFormatted
     return { label: dateStr, dateFormatted: dateStr, isToday: false, isYesterday: false };
   }
 }
+
+/**
+ * Truncate filenames or codes in the middle rather than at the end
+ * so that vital file extensions (.pdf, .csv, .png) or suffixes are preserved.
+ * Example: "employee_passport_scan_2026.pdf" -> "employee_p...2026.pdf"
+ */
+export function truncateMiddle(text: string | null | undefined, maxLen = 24): string {
+  if (!text) return '';
+  if (text.length <= maxLen) return text;
+
+  const dotIndex = text.lastIndexOf('.');
+  const ext = dotIndex !== -1 ? text.slice(dotIndex) : '';
+  const base = dotIndex !== -1 ? text.slice(0, dotIndex) : text;
+
+  // Space reserved for base name parts around ellipsis
+  const availableBase = maxLen - ext.length - 3;
+  if (availableBase <= 2) {
+    return `${text.slice(0, maxLen - 3)}...`;
+  }
+
+  const frontChars = Math.ceil(availableBase / 2);
+  const backChars = Math.floor(availableBase / 2);
+
+  return `${base.slice(0, frontChars)}...${base.slice(-backChars)}${ext}`;
+}
+

@@ -28,7 +28,7 @@ vi.mock('@/lib/api', () => ({
   healthApi: { get: vi.fn() },
   employeeApi: { list: vi.fn() },
   departmentApi: { list: vi.fn() },
-  attendanceApi: { list: vi.fn() },
+  attendanceApi: { list: vi.fn(), punch: vi.fn().mockResolvedValue({}) },
   leaveApi: { list: vi.fn(), decide: vi.fn() },
 }));
 

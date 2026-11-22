@@ -79,14 +79,14 @@ export function Modal({ open, onClose, title, description, children, busy = fals
       >
         <header className="modal-header">
           <div>
-            <h2 id={titleId}>{title}</h2>
+            <h2 id={titleId} className="text-balance">{title}</h2>
             {description && (
-              <p id={descriptionId}>{description}</p>
+              <p id={descriptionId} className="text-balance">{description}</p>
             )}
           </div>
           <button
             type="button"
-            className="icon-button"
+            className="icon-button hit-slop"
             onClick={onClose}
             aria-label="Close dialog"
             disabled={busy}

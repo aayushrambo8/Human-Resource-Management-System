@@ -382,7 +382,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <div className="relative" ref={notifRef}>
                   <button
                     type="button"
-                    className="icon-button relative"
+                    className="icon-button relative hit-slop"
                     aria-label={`Activity alerts (${unreadCount} unread)`}
                     title="Activity alerts"
                     aria-expanded={notificationsOpen}
@@ -400,7 +400,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
                   {notificationsOpen && (
                     <div
-                      className="absolute right-0 top-full mt-2 w-80 sm:w-96 p-2 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150"
+                      className="absolute right-0 top-full mt-2 w-80 sm:w-96 p-2 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl z-50 popover-menu-tr"
                       role="dialog"
                       aria-label="Notifications panel"
                     >
@@ -492,7 +492,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
                   {menuOpen && (
                     <div
-                      className="absolute right-0 top-full mt-2 w-56 p-1.5 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150"
+                      className="absolute right-0 top-full mt-2 w-56 p-1.5 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-2xl z-50 popover-menu-tr"
                       role="menu"
                       aria-label="User account options"
                     >

@@ -224,6 +224,12 @@ if (-not $SkipMigration) {
             Write-Host "  Executing: $($file.Name)..." -ForegroundColor Gray
             & $psqlPath -h localhost -p $DbPort -U $DbUser -d $DbName -f $file.FullName > $null 2>&1
         }
+
+        $seedScript = Join-Path $PSScriptRoot "seed-test-users.sql"
+        if (Test-Path $seedScript) {
+            Write-Host "  Seeding test user accounts & logins: seed-test-users.sql..." -ForegroundColor Gray
+            & $psqlPath -h localhost -p $DbPort -U $DbUser -d $DbName -f $seedScript > $null 2>&1
+        }
         Write-Success "All SQL migration scripts executed successfully!"
     } else {
         Write-WarnMsg "Migration directory not found at: $migrationDir"

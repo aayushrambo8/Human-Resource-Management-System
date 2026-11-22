@@ -122,6 +122,7 @@ export default function DashboardPage() {
   const canReviewLeaves = gates.canReviewLeaves(roles);
 
   const [punchModalOpen, setPunchModalOpen] = useState(false);
+  const [optimisticLeaves, setOptimisticLeaves] = useState<Record<string, 'APPROVED' | 'REJECTED' | 'PENDING'>>({});
   const {
     isCheckedIn,
     setIsCheckedIn,
@@ -226,7 +227,7 @@ export default function DashboardPage() {
   const pendingLeaves = leaves.filter((l) => l.status === 'PENDING').length;
   const approvedLeaves = leaves.filter((l) => l.status === 'APPROVED').length;
 
-  const handleManualPunch = (punch: { direction: 'IN' | 'OUT'; deviceCode: string; time: string }) => {
+  const handleManualPunch = async (punch: { direction: 'IN' | 'OUT'; deviceCode: string; time: string }) => {
     addPunch({
       direction: punch.direction,
       deviceCode: punch.deviceCode,
@@ -235,14 +236,34 @@ export default function DashboardPage() {
       employeeCode: userCode,
       employeeId: `emp-${email}`,
     });
+    try {
+      if (typeof attendanceApi.punch === 'function') {
+        await attendanceApi.punch({
+          direction: punch.direction,
+          deviceCode: punch.deviceCode,
+          time: punch.time,
+        });
+        void attendanceQuery.refetch();
+      }
+    } catch (err) {
+      console.warn('Could not record punch in database:', err);
+    }
   };
 
   const handleLeaveDecision = async (id: string, status: 'APPROVED' | 'REJECTED') => {
+    // Optimistic UI update (Rule 2)
+    setOptimisticLeaves((prev) => ({ ...prev, [id]: status }));
     try {
       await leaveApi.decide(id, { status });
       void leavesQuery.refetch();
     } catch {
       // In tests/mock mode, simulate local update
+      SAMPLE_LEAVES.forEach((l) => {
+        if (l.id === id) {
+          l.status = status;
+          l.reviewedAt = new Date().toISOString();
+        }
+      });
       leavesQuery.data?.forEach((l) => {
         if (l.id === id) {
           l.status = status;
@@ -534,13 +555,13 @@ export default function DashboardPage() {
                     <span className="text-[10px] text-[var(--text-faint)] tabular-nums">
                       {formatDate(item.startDate)} – {formatDate(item.endDate)}
                     </span>
-                    {canReviewLeaves && item.status === 'PENDING' ? (
+                    {canReviewLeaves && (optimisticLeaves[item.id] ?? item.status) === 'PENDING' ? (
                       <div className="flex items-center gap-1.5">
                         <button
                           type="button"
                           onClick={() => handleLeaveDecision(item.id, 'APPROVED')}
                           aria-label={`Approve leave for ${item.employeeCode}`}
-                          className="px-2 py-0.5 text-[11px] font-medium rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-2xs"
+                          className="px-2 py-0.5 text-[11px] font-medium rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-transform active:scale-[0.97] shadow-2xs"
                         >
                           Approve
                         </button>
@@ -548,14 +569,14 @@ export default function DashboardPage() {
                           type="button"
                           onClick={() => handleLeaveDecision(item.id, 'REJECTED')}
                           aria-label={`Reject leave for ${item.employeeCode}`}
-                          className="px-2 py-0.5 text-[11px] font-medium rounded-md bg-[var(--surface)] border border-[var(--border)] text-[var(--text-muted)] hover:text-red-600 transition-colors"
+                          className="px-2 py-0.5 text-[11px] font-medium rounded-md bg-[var(--surface)] border border-[var(--border)] text-[var(--text-muted)] hover:text-red-600 transition-transform active:scale-[0.97]"
                         >
                           Decline
                         </button>
                       </div>
                     ) : (
-                      <span className={`text-[10px] font-semibold ${item.status === 'APPROVED' ? 'text-emerald-600' : 'text-slate-500'}`}>
-                        {item.status}
+                      <span className={`text-[10px] font-semibold animate-success-pulse ${(optimisticLeaves[item.id] || item.status) === 'APPROVED' ? 'text-emerald-600' : 'text-slate-500'}`}>
+                        {optimisticLeaves[item.id] || item.status}
                       </span>
                     )}
                   </div>

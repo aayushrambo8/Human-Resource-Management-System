@@ -83,6 +83,14 @@ api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const token = sessionStorage.getItem(ACCESS_TOKEN_KEY) || localStorage.getItem(ACCESS_TOKEN_KEY);
     if (token) config.headers.Authorization = `Bearer ${token}`;
+
+    // Attach client-side Idempotency-Key for state mutations (Rule 19)
+    const method = config.method?.toUpperCase();
+    if (method && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !config.headers['Idempotency-Key']) {
+      if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        config.headers['Idempotency-Key'] = crypto.randomUUID();
+      }
+    }
   }
   return config;
 });

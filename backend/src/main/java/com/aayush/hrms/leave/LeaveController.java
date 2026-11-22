@@ -42,7 +42,7 @@ public class LeaveController {
     }
 
     @PatchMapping("/{id}/decision")
-    @PreAuthorize("hasAuthority('leave:review')")
+    @PreAuthorize("hasAuthority('leave:review') or hasRole('HR') or hasRole('ADMIN')")
     public LeaveSummary review(
             @PathVariable UUID id, @Valid @RequestBody LeaveDecision decision, Principal principal) {
         return leaveService.review(id, principal.getName(), decision.status());

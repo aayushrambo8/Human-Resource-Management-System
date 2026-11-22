@@ -327,9 +327,9 @@ export default function EmployeePortalPage() {
           title="Apply for Leave"
         >
           <LeaveForm
+            submitLabel="Submit Leave Request"
             onSubmit={handleLeaveSubmit}
             onCancel={() => setLeaveModalOpen(false)}
-            submitting={false}
           />
         </Modal>
       )}
