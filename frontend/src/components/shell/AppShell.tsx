@@ -85,6 +85,15 @@ function getPageMeta(pathname: string): PageMeta {
       parentTitle: 'People Directory',
     };
   }
+  if (pathname.startsWith('/departments/')) {
+    return {
+      title: 'Department Overview & Personnel',
+      category: 'Workforce Core',
+      description: 'Departmental statistics, head of department, and personnel directory',
+      parentHref: '/departments',
+      parentTitle: 'Departments',
+    };
+  }
   return PAGE_METADATA[pathname] ?? { title: 'Dashboard', category: 'Workforce', parentHref: '/', parentTitle: 'Overview' };
 }
 

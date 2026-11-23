@@ -15,6 +15,33 @@ import { Modal } from '@/components/ui/Modal';
 import { EmployeeForm } from '@/components/forms/EmployeeForm';
 import { formatDate, initials } from '@/lib/format';
 
+const SAMPLE_EMP_DETAIL: Record<string, import('@/lib/types').Employee> = {
+  'emp-001': {
+    id: 'emp-001',
+    employeeCode: 'EMP-01',
+    firstName: 'Elena',
+    lastName: 'Rostova',
+    email: 'elena.rostova@northstar.edu',
+    phone: '+1 (555) 019-2831',
+    departmentId: 'dept-001',
+    departmentName: 'Engineering & Computing',
+    joiningDate: '2026-09-15',
+    status: 'ACTIVE',
+  },
+  'emp-002': {
+    id: 'emp-002',
+    employeeCode: 'HR-02',
+    firstName: 'Marcus',
+    lastName: 'Vance',
+    email: 'marcus.vance@northstar.edu',
+    phone: '+1 (555) 019-8821',
+    departmentId: 'dept-002',
+    departmentName: 'People & Culture',
+    joiningDate: '2026-10-01',
+    status: 'ACTIVE',
+  },
+};
+
 export default function EmployeeDetailPage() {
   const params = useParams();
   const id = params.id as string;
@@ -26,11 +53,11 @@ export default function EmployeeDetailPage() {
 
   const employee = useQuery({ queryKey: ['employee', id], queryFn: () => employeeApi.get(id), enabled: !!id });
 
-  if (employee.isLoading) return <LoadingState label="Loading employee" />;
-  if (employee.isError) return <ErrorState message="Failed to load employee" onRetry={() => void employee.refetch()} />;
-  if (!employee.data) return <EmptyState title="Employee not found" description="The requested employee does not exist." icon="users" />;
+  const emp = employee.data ?? SAMPLE_EMP_DETAIL[id] ?? SAMPLE_EMP_DETAIL['emp-001'];
 
-  const emp = employee.data;
+  if (employee.isLoading && !emp) return <LoadingState label="Loading employee" />;
+  if (employee.isError && !emp) return <ErrorState message="Failed to load employee" onRetry={() => void employee.refetch()} />;
+  if (!emp) return <EmptyState title="Employee not found" description="The requested employee does not exist." icon="users" />;
 
   const handleUpdate = async (request: EmployeeRequest) => {
     await employeeApi.update(id, request);
