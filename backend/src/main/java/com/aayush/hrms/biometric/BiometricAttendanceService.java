@@ -9,10 +9,13 @@ import com.aayush.hrms.employee.Employee;
 import com.aayush.hrms.employee.EmployeeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class BiometricAttendanceService {
@@ -45,6 +48,11 @@ public class BiometricAttendanceService {
         AttendanceDirection direction = request.direction() == null
                 ? AttendanceDirection.UNKNOWN
                 : request.direction();
+
+        Instant maxFuture = Instant.now().plusSeconds(600);
+        if (request.punchTime().isAfter(maxFuture)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Punch timestamp cannot be in the future");
+        }
 
         Employee employee = employeeRepository.findByEmployeeCode(request.employeeCode()).orElse(null);
         BiometricLogStatus status = employee == null

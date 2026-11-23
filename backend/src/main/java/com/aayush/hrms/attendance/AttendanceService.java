@@ -50,19 +50,42 @@ public class AttendanceService {
     }
 
     @Transactional
+    public Page<AttendanceSummary> list(String authEmail, boolean canReadAll, Pageable pageable) {
+        if (canReadAll) {
+            return attendanceRepository.findAllByOrderByPunchTimeDesc(pageable).map(AttendanceSummary::from);
+        }
+        if (authEmail != null && !authEmail.isBlank()) {
+            UserAccount account = accountRepository.findByEmailIgnoreCase(authEmail).orElse(null);
+            Employee employee = (account != null && account.getEmployee() != null)
+                    ? account.getEmployee()
+                    : employeeRepository.findByEmail(authEmail).orElse(null);
+            if (employee != null) {
+                return attendanceRepository.findByEmployeeOrderByPunchTimeDesc(employee, pageable)
+                        .map(AttendanceSummary::from);
+            }
+        }
+        return Page.empty(pageable);
+    }
+
+    @Transactional
     public AttendanceSummary recordPunch(String authEmail, AttendancePunchRequest request) {
+        UserAccount callerAccount = authEmail != null ? accountRepository.findByEmailIgnoreCase(authEmail).orElse(null) : null;
+        boolean isHrOrAdmin = callerAccount != null && callerAccount.getRoles().stream()
+                .anyMatch(r -> r.getCode().equals("ADMIN") || r.getCode().equals("HR"));
+
         Employee employee;
         if (request.employeeCode() != null && !request.employeeCode().isBlank()) {
             employee = employeeRepository.findByEmployeeCode(request.employeeCode())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found with code: " + request.employeeCode()));
-        } else if (authEmail != null && !authEmail.isBlank()) {
-            UserAccount account = accountRepository.findByEmailIgnoreCase(authEmail).orElse(null);
-            if (account != null && account.getEmployee() != null) {
-                employee = account.getEmployee();
-            } else {
-                employee = employeeRepository.findByEmail(authEmail)
-                        .orElseGet(() -> employeeRepository.findAll().stream().findFirst().orElse(null));
+            if (!isHrOrAdmin && (callerAccount == null || callerAccount.getEmployee() == null
+                    || !callerAccount.getEmployee().getId().equals(employee.getId()))) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot punch attendance for another employee");
             }
+        } else if (callerAccount != null && callerAccount.getEmployee() != null) {
+            employee = callerAccount.getEmployee();
+        } else if (authEmail != null && !authEmail.isBlank()) {
+            employee = employeeRepository.findByEmail(authEmail)
+                    .orElseGet(() -> employeeRepository.findAll().stream().findFirst().orElse(null));
         } else {
             employee = null;
         }

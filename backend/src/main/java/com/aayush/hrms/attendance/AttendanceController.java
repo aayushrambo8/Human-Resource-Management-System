@@ -27,12 +27,16 @@ public class AttendanceController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('attendance:read')")
+    @PreAuthorize("hasAuthority('attendance:read') or isAuthenticated()")
     public PageResponse<AttendanceSummary> list(
+            org.springframework.security.core.Authentication authentication,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(Math.max(0, page), Math.clamp(size, 1, 100), Sort.unsorted());
-        return PageResponse.from(attendanceService.list(pageable));
+        boolean canReadAll = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("attendance:read"));
+        String authEmail = authentication != null ? authentication.getName() : null;
+        return PageResponse.from(attendanceService.list(authEmail, canReadAll, pageable));
     }
 
     @PostMapping("/punch")

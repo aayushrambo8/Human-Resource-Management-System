@@ -94,36 +94,36 @@ export function EnterpriseTable<T>({
   return (
     <div className="flex flex-col border border-[var(--border)] rounded-xl bg-[var(--surface)] overflow-hidden shadow-xs transition-colors">
       {/* Table Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3.5 border-b border-[var(--border)] bg-[var(--surface)]">
-        <div className="flex items-center gap-2.5 flex-1 max-w-md">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 border-b border-[var(--border)] bg-[var(--surface)]">
+        <div className="flex items-center gap-3 flex-1 max-w-lg">
           <div className="relative flex-1">
-            <span className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-[var(--text-faint)]">
-              <Icon name="search" size={14} />
+            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[var(--text-faint)]">
+              <Icon name="search" size={15} />
             </span>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={searchPlaceholder}
-              className="w-full h-8 pl-8 pr-3 text-xs rounded-lg bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-hidden focus:ring-1 focus:ring-[var(--accent-solid)] focus:bg-[var(--surface)] transition-all"
+              className="w-full h-9 pl-9 pr-3 text-xs sm:text-sm rounded-xl bg-[var(--surface-alt)] border border-[var(--border)] text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-hidden focus:ring-1 focus:ring-[var(--accent-solid)] focus:bg-[var(--surface)] transition-all font-serif"
             />
             {searchTerm && (
               <button
                 type="button"
                 onClick={() => setSearchTerm('')}
-                className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-[var(--text-faint)] hover:text-[var(--text)]"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--text-faint)] hover:text-[var(--text)] cursor-pointer"
               >
-                <Icon name="close" size={12} />
+                <Icon name="close" size={13} />
               </button>
             )}
           </div>
 
           {filterOptions && filterOptions.length > 0 && (
-            <div className="flex items-center gap-1 bg-[var(--surface-alt)] p-0.5 rounded-lg border border-[var(--border)]">
+            <div className="flex items-center gap-1 bg-[var(--surface-alt)] p-1 rounded-xl border border-[var(--border)]">
               <button
                 type="button"
                 onClick={() => setActiveFilter('ALL')}
-                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-all ${
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
                   activeFilter === 'ALL'
                     ? 'bg-[var(--surface)] text-[var(--text)] shadow-xs font-semibold'
                     : 'text-[var(--text-muted)] hover:text-[var(--text)]'
@@ -136,7 +136,7 @@ export function EnterpriseTable<T>({
                   key={opt.value}
                   type="button"
                   onClick={() => setActiveFilter(opt.value)}
-                  className={`px-2.5 py-1 text-xs font-medium rounded-md transition-all ${
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
                     activeFilter === opt.value
                       ? 'bg-[var(--surface)] text-[var(--text)] shadow-xs font-semibold'
                       : 'text-[var(--text-muted)] hover:text-[var(--text)]'
@@ -149,9 +149,9 @@ export function EnterpriseTable<T>({
           )}
         </div>
 
-        <div className="flex items-center gap-2 self-end sm:self-auto">
+        <div className="flex items-center gap-2.5 self-end sm:self-auto">
           {selectedIds.size > 0 && (
-            <span className="text-xs font-medium text-[var(--text-muted)] bg-[var(--surface-alt)] px-2.5 py-1 rounded-md border border-[var(--border)]">
+            <span className="text-xs font-mono font-medium text-[var(--text-muted)] bg-[var(--surface-alt)] px-3 py-1.5 rounded-lg border border-[var(--border)]">
               {selectedIds.size} selected
             </span>
           )}
@@ -161,28 +161,28 @@ export function EnterpriseTable<T>({
 
       {/* Table Content */}
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left text-xs">
+        <table className="w-full border-collapse text-left">
           <thead>
-            <tr className="border-b border-[var(--border)] bg-[var(--surface-alt)] text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">
-              <th className="py-2.5 pl-4 pr-2 w-8">
+            <tr className="border-b border-[var(--border)] bg-[var(--surface-alt)] text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider font-mono">
+              <th className="py-3.5 pl-5 pr-2 w-10">
                 <input
                   type="checkbox"
                   aria-label="Select all rows"
                   checked={filtered.length > 0 && selectedIds.size === filtered.length}
                   onChange={toggleSelectAll}
-                  className="rounded border-[var(--border-strong)] text-[var(--accent-solid)] focus:ring-[var(--ring)]"
+                  className="rounded border-[var(--border-strong)] text-[var(--accent-solid)] focus:ring-[var(--ring)] cursor-pointer"
                 />
               </th>
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`py-2.5 px-3 select-none ${col.sortable ? 'cursor-pointer hover:text-[var(--text)]' : ''} ${col.className ?? ''}`}
+                  className={`py-3.5 px-4 sm:px-5 select-none ${col.sortable ? 'cursor-pointer hover:text-[var(--text)]' : ''} ${col.className ?? ''}`}
                   onClick={() => col.sortable && handleSort(col.key)}
                 >
                   <div className="flex items-center gap-1.5">
                     <span>{col.header}</span>
                     {col.sortable && sortKey === col.key && (
-                      <span className="text-[var(--accent-solid)]">
+                      <span className="text-[var(--accent-solid)] font-bold">
                         {sortDirection === 'asc' ? '↑' : '↓'}
                       </span>
                     )}
@@ -194,13 +194,13 @@ export function EnterpriseTable<T>({
           <tbody className="divide-y divide-[var(--border-subtle)]">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={columns.length + 1} className="py-12 text-center">
-                  <div className="flex flex-col items-center justify-center space-y-1.5">
-                    <div className="size-8 rounded-full bg-[var(--surface-alt)] border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)]">
-                      <Icon name="search" size={14} />
+                <td colSpan={columns.length + 1} className="py-20 text-center">
+                  <div className="flex flex-col items-center justify-center space-y-2">
+                    <div className="size-10 rounded-full bg-[var(--surface-alt)] border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)]">
+                      <Icon name="search" size={16} />
                     </div>
-                    <p className="text-xs font-medium text-[var(--text)]">{emptyTitle}</p>
-                    <p className="text-[11px] text-[var(--text-muted)] max-w-sm">{emptyDescription}</p>
+                    <p className="text-sm font-semibold text-[var(--text)] font-serif">{emptyTitle}</p>
+                    <p className="text-xs text-[var(--text-muted)] max-w-sm font-serif">{emptyDescription}</p>
                   </div>
                 </td>
               </tr>
@@ -211,21 +211,21 @@ export function EnterpriseTable<T>({
                 return (
                   <tr
                     key={id}
-                    className={`transition-colors duration-100 group ${
+                    className={`transition-colors duration-150 group ${
                       isSelected ? 'bg-[var(--surface-alt)]' : 'hover:bg-[var(--surface-hover)]'
                     }`}
                   >
-                    <td className="py-3 pl-4 pr-2">
+                    <td className="py-4.5 pl-5 pr-2">
                       <input
                         type="checkbox"
                         aria-label={`Select row ${id}`}
                         checked={isSelected}
                         onChange={() => toggleSelectRow(id)}
-                        className="rounded border-[var(--border-strong)] text-[var(--accent-solid)] focus:ring-[var(--ring)]"
+                        className="rounded border-[var(--border-strong)] text-[var(--accent-solid)] focus:ring-[var(--ring)] cursor-pointer"
                       />
                     </td>
                     {columns.map((col) => (
-                      <td key={col.key} className={`py-3 px-3 text-[var(--text)] align-middle ${col.className ?? ''}`}>
+                      <td key={col.key} className={`py-4.5 px-4 sm:px-5 text-[var(--text)] align-middle ${col.className ?? ''}`}>
                         {col.render ? col.render(item, idx) : String((item as Record<string, unknown>)[col.key] ?? '—')}
                       </td>
                     ))}

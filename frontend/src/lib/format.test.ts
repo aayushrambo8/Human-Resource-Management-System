@@ -22,14 +22,16 @@ describe('format utilities', () => {
   });
 
   it('identifies today and same days accurately', () => {
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     expect(isToday(todayStr)).toBe(true);
     expect(isSameDay(todayStr, todayStr)).toBe(true);
     expect(isToday('2020-01-01')).toBe(false);
   });
 
   it('formats day headers with Today, Yesterday, and weekday labels', () => {
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     const header = formatDayHeader(todayStr);
     expect(header.label).toBe('Today');
     expect(header.isToday).toBe(true);

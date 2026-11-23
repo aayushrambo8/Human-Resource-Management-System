@@ -181,7 +181,7 @@ export default function DashboardPage() {
       employeeCode: userCode,
       employeeName: userDisplayName,
       deviceCode: 'WEB-TERMINAL',
-      punchTime: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+      punchTime: new Date().toISOString(),
       direction: 'IN',
     }),
     [email, userCode, userDisplayName]
@@ -366,51 +366,51 @@ export default function DashboardPage() {
       {/* Primary KPI Row - Linear / Stripe Style Metric Tiles */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI 1 */}
-        <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-2xs hover:border-[var(--border-strong)] transition-all">
-          <div className="flex items-center justify-between text-xs font-medium text-[var(--text-muted)] mb-2">
+        <div className="p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-2xs hover:border-[var(--border-strong)] transition-all">
+          <div className="flex items-center justify-between text-xs font-serif font-medium text-[var(--text-muted)] mb-2">
             <span>{isHrOrAdmin ? 'Total Workforce' : 'My Shift Status'}</span>
             <Icon name={isHrOrAdmin ? 'users' : 'clock'} size={14} className="text-[var(--text-faint)]" />
           </div>
           <div className="flex items-baseline justify-between">
-            <div className="text-2xl font-bold tracking-tight tabular-nums text-[var(--text)]">
+            <div className="text-[34px] font-impact tracking-tight tabular-nums text-[var(--text)]">
               {isHrOrAdmin ? activeEmployees : isCheckedIn ? 'Clocked In' : 'Clocked Out'}
             </div>
-            <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${
+            <span className={`inline-flex items-center gap-0.5 text-xs font-impact tracking-wider ${
               isHrOrAdmin || isCheckedIn ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500'
             }`}>
               <Icon name={isHrOrAdmin ? 'trending-up' : isCheckedIn ? 'check' : 'alert'} size={12} />
               {isHrOrAdmin ? '+12% MoM' : isCheckedIn ? 'Active Now' : 'Off Shift'}
             </span>
           </div>
-          <div className="text-[11px] text-[var(--text-faint)] mt-1.5 flex items-center justify-between">
+          <div className="text-[11px] text-[var(--text-faint)] mt-2 flex items-center justify-between">
             <span>{isHrOrAdmin ? `${employees.length} enrolled personnel` : 'Terminal: WEB-TERMINAL'}</span>
             <span className="font-mono text-[10px] text-emerald-600">{isHrOrAdmin ? 'Active' : 'Biometric OK'}</span>
           </div>
         </div>
 
         {/* KPI 2 */}
-        <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-2xs hover:border-[var(--border-strong)] transition-all">
-          <div className="flex items-center justify-between text-xs font-medium text-[var(--text-muted)] mb-2">
+        <div className="p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-2xs hover:border-[var(--border-strong)] transition-all">
+          <div className="flex items-center justify-between text-xs font-serif font-medium text-[var(--text-muted)] mb-2">
             <span>{isHrOrAdmin ? 'Present Today' : 'Today Hours Logged'}</span>
             <Icon name="clock" size={14} className="text-[var(--text-faint)]" />
           </div>
           <div className="flex items-baseline justify-between">
-            <div className="text-2xl font-bold tracking-tight tabular-nums text-[var(--text)]">
+            <div className="text-[34px] font-impact tracking-tight tabular-nums text-[var(--text)] flex items-baseline gap-1.5">
               {isHrOrAdmin ? (
                 <>
-                  {presentCount} <span className="text-sm font-medium text-[var(--text-muted)]">/ {activeEmployees}</span>
+                  {presentCount} <span className="text-sm font-serif font-normal text-[var(--text-muted)]">/ {activeEmployees}</span>
                 </>
               ) : (
                 `${Math.floor(activeSeconds / 3600)}h ${Math.floor((activeSeconds % 3600) / 60)}m`
               )}
             </div>
-            <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+            <span className="inline-flex items-center gap-0.5 text-xs font-impact tracking-wider text-emerald-600 dark:text-emerald-400">
               {isHrOrAdmin ? `${activeEmployees > 0 ? Math.round((presentCount / activeEmployees) * 100) : 0}% workforce` : 'Target: 8h 00m'}
             </span>
           </div>
-          <div className="w-full bg-[var(--surface-alt)] rounded-full h-1 mt-2.5 overflow-hidden">
+          <div className="w-full bg-[var(--surface-alt)] rounded-full h-1.5 mt-3 overflow-hidden">
             <div
-              className="bg-emerald-500 h-1 rounded-full transition-all duration-300"
+              className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
               style={{
                 width: isHrOrAdmin
                   ? `${activeEmployees > 0 ? Math.min(100, Math.round((presentCount / activeEmployees) * 100)) : 0}%`
@@ -421,42 +421,42 @@ export default function DashboardPage() {
         </div>
 
         {/* KPI 3 */}
-        <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-2xs hover:border-[var(--border-strong)] transition-all">
-          <div className="flex items-center justify-between text-xs font-medium text-[var(--text-muted)] mb-2">
+        <div className="p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-2xs hover:border-[var(--border-strong)] transition-all">
+          <div className="flex items-center justify-between text-xs font-serif font-medium text-[var(--text-muted)] mb-2">
             <span>{isHrOrAdmin ? 'On Scheduled Leave' : 'My Leave Balance'}</span>
             <Icon name="calendar" size={14} className="text-[var(--text-faint)]" />
           </div>
           <div className="flex items-baseline justify-between">
-            <div className="text-2xl font-bold tracking-tight tabular-nums text-[var(--text)]">
+            <div className="text-[34px] font-impact tracking-tight tabular-nums text-[var(--text)]">
               {isHrOrAdmin ? approvedLeaves : '18.5 Days'}
             </div>
-            <span className="text-[11px] font-medium text-[var(--text-muted)]">
+            <span className="text-xs font-impact tracking-wider text-[var(--text-muted)] uppercase">
               {isHrOrAdmin ? 'Authorized' : 'Paid Time Off'}
             </span>
           </div>
-          <div className="text-[11px] text-[var(--text-faint)] mt-1.5 flex items-center justify-between">
+          <div className="text-[11px] text-[var(--text-faint)] mt-2 flex items-center justify-between">
             <span>{isHrOrAdmin ? 'Operations capacity: 94%' : 'Annual allowance: 24d'}</span>
             <span className="text-[10px] font-mono">{isHrOrAdmin ? 'Normal' : 'Accruing'}</span>
           </div>
         </div>
 
         {/* KPI 4 */}
-        <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-2xs hover:border-[var(--border-strong)] transition-all">
-          <div className="flex items-center justify-between text-xs font-medium text-[var(--text-muted)] mb-2">
+        <div className="p-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-2xs hover:border-[var(--border-strong)] transition-all">
+          <div className="flex items-center justify-between text-xs font-serif font-medium text-[var(--text-muted)] mb-2">
             <span>{isHrOrAdmin ? 'Pending Approvals' : "Today's Punches"}</span>
             <Icon name={isHrOrAdmin ? 'alert' : 'fingerprint'} size={14} className="text-[var(--text-faint)]" />
           </div>
           <div className="flex items-baseline justify-between">
-            <div className="text-2xl font-bold tracking-tight tabular-nums text-[var(--text)]">
+            <div className="text-[34px] font-impact tracking-tight tabular-nums text-[var(--text)]">
               {isHrOrAdmin ? pendingLeaves : todayAttendanceRecords.length}
             </div>
-            <span className={`inline-flex items-center gap-1 text-[11px] font-medium ${
+            <span className={`inline-flex items-center gap-1 text-xs font-impact tracking-wider uppercase ${
               isHrOrAdmin ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'
             }`}>
               {isHrOrAdmin ? 'Action Required' : 'Today'}
             </span>
           </div>
-          <div className="text-[11px] text-[var(--text-faint)] mt-1.5 flex items-center justify-between">
+          <div className="text-[11px] text-[var(--text-faint)] mt-2 flex items-center justify-between">
             <span>{isHrOrAdmin ? 'Average turnaround: 2.1h' : 'Shift events'}</span>
             <span className="font-mono text-[10px]">{isHrOrAdmin ? 'Queue' : 'Live'}</span>
           </div>

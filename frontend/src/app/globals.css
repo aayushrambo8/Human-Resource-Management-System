@@ -8,6 +8,28 @@
    ========================================================================= */
 
 :root {
+  /* Typography Stacks: Google Serif all around, Impact for emphasis */
+  --font-serif: var(--font-lora), var(--font-merriweather), 'Lora', 'Merriweather', 'Georgia', 'Cambria', 'Times New Roman', serif;
+  --font-impact: 'Impact', 'Haettenschweiler', 'Arial Black', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Golden Ratio Modular Typography Scale (Base = 16px, phi ≈ 1.618) */
+  --text-ratio-micro: 10px;      /* 16 / 1.618 */
+  --text-ratio-sm: 13px;         /* 16 / 1.272 (half-step phi) */
+  --text-ratio-base: 16px;       /* 16px base */
+  --text-ratio-md: 20px;         /* 16 * 1.272 */
+  --text-ratio-lg: 26px;         /* 16 * 1.618 */
+  --text-ratio-xl: 42px;         /* 26 * 1.618 */
+  --text-ratio-hero: 68px;       /* 42 * 1.618 */
+
+  /* Golden Ratio Spacing Scale (Fibonacci Rhythm) */
+  --space-ratio-1: 8px;
+  --space-ratio-2: 13px;
+  --space-ratio-3: 21px;
+  --space-ratio-4: 34px;
+  --space-ratio-5: 55px;
+  --space-ratio-6: 89px;
+
   /* Default fallbacks before dynamic JS token injection */
   --color-canvas: #F5EAE0;
   --color-canvas-secondary: #F0DFD2;
@@ -93,11 +115,24 @@ body {
   min-height: 100vh;
   background-color: var(--color-canvas);
   color: var(--color-text);
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: var(--text-ratio-base);
+  line-height: 1.618;
   overflow-x: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
   transition: background-color 0.3s ease;
+}
+
+/* Impact Typography for High-Emphasis Moments */
+.font-impact,
+.emphasis-impact,
+[data-emphasis="impact"],
+.impact-metric,
+.impact-badge {
+  font-family: var(--font-impact) !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 /* Universal scrollbar removal: smooth scrolling preserved without visible scrollbars */
@@ -755,6 +790,126 @@ h1, h2, h3, h4, .text-balance {
   .island-body {
     padding: 20px 16px;
   }
+}
+
+/* =========================================================================
+   PROFILE & EMPLOYEE DETAILS (GOLDEN RATIO SPACING & HIERARCHY)
+   ========================================================================= */
+
+.profile-hero {
+  display: flex;
+  align-items: center;
+  gap: var(--space-ratio-4, 34px);
+  padding: 34px 42px;
+}
+
+@media (max-width: 640px) {
+  .profile-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 24px 20px;
+  }
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  background-color: var(--color-primary);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-impact);
+  font-size: var(--text-ratio-lg, 26px);
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.profile-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-intro h2 {
+  font-size: var(--text-ratio-lg, 26px);
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text);
+  font-family: var(--font-serif);
+}
+
+.profile-intro span {
+  font-size: var(--text-ratio-sm, 13px);
+  color: var(--color-text-muted);
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px 34px;
+  padding: 34px 42px;
+}
+
+@media (max-width: 640px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+    padding: 20px;
+    gap: 18px;
+  }
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.info-row:hover {
+  border-color: var(--color-primary);
+}
+
+.info-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background-color: var(--color-canvas);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.info-row > div:not(.info-icon) {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.info-row span {
+  font-size: var(--text-ratio-sm, 13px);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+}
+
+.info-row strong {
+  font-size: var(--text-ratio-base, 16px);
+  color: var(--color-text);
+  font-weight: 600;
+  word-break: break-word;
 }
 
 /* =========================================================================

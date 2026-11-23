@@ -8,4 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface AttendanceRecordRepository extends JpaRepository<AttendanceRecord, UUID> {
     java.util.List<AttendanceRecord> findAllByOrderByPunchTimeDesc();
     Page<AttendanceRecord> findAllByOrderByPunchTimeDesc(Pageable pageable);
+    Page<AttendanceRecord> findByEmployeeOrderByPunchTimeDesc(com.aayush.hrms.employee.Employee employee, Pageable pageable);
 }

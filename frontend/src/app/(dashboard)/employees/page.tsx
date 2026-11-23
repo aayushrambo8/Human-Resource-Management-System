@@ -20,46 +20,46 @@ export default function EmployeesPage() {
   const columns: Column<Employee>[] = [
     {
       key: 'name',
-      header: 'Employee',
+      header: 'Employee Personnel',
       sortable: true,
       render: (employee) => (
-        <Link href={`/employees/${employee.id}`} className="flex items-center gap-2.5 group">
-          <div className="size-7 rounded-md bg-[var(--surface-alt)] border border-[var(--border)] flex items-center justify-center font-semibold text-xs text-[var(--text-secondary)]">
+        <Link href={`/employees/${employee.id}`} className="flex items-center gap-3.5 group py-0.5">
+          <div className="size-10 rounded-xl bg-[var(--surface-alt)] border border-[var(--border)] flex items-center justify-center font-bold text-xs text-[var(--text-secondary)] shadow-2xs group-hover:border-[var(--accent-solid)] group-hover:bg-[var(--accent-solid)] group-hover:text-white transition-all shrink-0">
             {initials(`${employee.firstName} ${employee.lastName}`)}
           </div>
-          <div>
-            <div className="font-semibold text-xs text-[var(--text)] group-hover:text-[var(--accent-solid)] transition-colors">
+          <div className="min-w-0">
+            <div className="font-semibold text-sm sm:text-base text-[var(--text)] group-hover:text-[var(--accent-solid)] transition-colors truncate font-serif">
               {employee.firstName} {employee.lastName}
             </div>
-            <div className="text-[10px] text-[var(--text-muted)] font-mono">{employee.employeeCode}</div>
+            <div className="text-xs text-[var(--text-muted)] font-mono tracking-wider">{employee.employeeCode}</div>
           </div>
         </Link>
       ),
     },
     {
       key: 'departmentName',
-      header: 'Department',
+      header: 'Division / Department',
       sortable: true,
       render: (employee) => (
-        <span className="text-xs text-[var(--text-secondary)]">
+        <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)] font-serif">
           {employee.departmentName ?? 'Unassigned'}
         </span>
       ),
     },
     {
       key: 'email',
-      header: 'Email Address',
+      header: 'Corporate Email',
       render: (employee) => (
-        <span className="text-xs text-[var(--text-muted)] font-mono">
+        <span className="text-xs text-[var(--text-muted)] font-mono truncate max-w-[200px] block">
           {employee.email ?? '—'}
         </span>
       ),
     },
     {
       key: 'phone',
-      header: 'Contact',
+      header: 'Contact Line',
       render: (employee) => (
-        <span className="text-xs text-[var(--text-muted)] tabular-nums">
+        <span className="text-xs text-[var(--text-muted)] tabular-nums font-mono">
           {employee.phone ?? '—'}
         </span>
       ),
@@ -70,13 +70,13 @@ export default function EmployeesPage() {
       sortable: true,
       render: (employee) => (
         <span
-          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold border ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-impact tracking-wider border shadow-2xs ${
             employee.status === 'ACTIVE'
               ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800'
               : 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900/40 dark:text-slate-300 dark:border-slate-800'
           }`}
         >
-          <span className={`size-1.5 rounded-full ${employee.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+          <span className={`size-1.5 rounded-full ${employee.status === 'ACTIVE' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
           {employee.status}
         </span>
       ),
@@ -86,7 +86,7 @@ export default function EmployeesPage() {
       header: 'Enrolled Date',
       sortable: true,
       render: (employee) => (
-        <span className="text-xs text-[var(--text-muted)] tabular-nums">
+        <span className="text-xs text-[var(--text-muted)] tabular-nums font-serif">
           {formatDate(employee.joiningDate)}
         </span>
       ),
@@ -94,11 +94,11 @@ export default function EmployeesPage() {
     {
       key: 'actions',
       header: '',
-      className: 'w-10 text-right',
+      className: 'w-12 text-right',
       render: (employee) => (
         <Link
           href={`/employees/${employee.id}`}
-          className="size-7 rounded-md inline-flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--surface-hover)] transition-colors"
+          className="size-8 rounded-lg inline-flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--surface-hover)] border border-transparent hover:border-[var(--border)] transition-all"
           aria-label={`View ${employee.firstName}`}
         >
           <Icon name="chevron" size={14} />
@@ -108,25 +108,28 @@ export default function EmployeesPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Module Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-[var(--border)]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[var(--border)]">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[var(--text-faint)]">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-xs font-mono font-semibold uppercase tracking-wider text-[var(--text-faint)]">
               Core Directory
             </span>
             <span className="text-[var(--text-faint)]">/</span>
             <span className="text-xs text-[var(--text-muted)]">Personnel Management</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--text)]">
+          <h1 className="text-2xl sm:text-[34px] md:text-[42px] font-bold tracking-tight text-[var(--text)] font-serif leading-tight">
             People Directory
           </h1>
+          <p className="text-xs text-[var(--text-muted)] mt-1">
+            Institutional workforce records, department mappings, and identity credentials
+          </p>
         </div>
 
         {canWrite && (
           <div className="flex items-center gap-2.5">
-            <Link href="/employees/new" className="btn btn-primary text-xs">
+            <Link href="/employees/new" className="btn btn-primary text-xs px-4 py-2">
               <Icon name="plus" size={14} />
               <span>Onboard New Employee</span>
             </Link>

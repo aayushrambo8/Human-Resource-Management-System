@@ -59,7 +59,12 @@ public class LeaveService {
         if (request.getStatus() != LeaveStatus.PENDING) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Leave request has already been reviewed");
         }
-        request.review(status, findAccount(email));
+        UserAccount reviewer = findAccount(email);
+        if (request.getEmployee() != null && reviewer.getEmployee() != null
+                && request.getEmployee().getId().equals(reviewer.getEmployee().getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Self-approval of leave requests is prohibited");
+        }
+        request.review(status, reviewer);
         return LeaveSummary.from(request);
     }
 

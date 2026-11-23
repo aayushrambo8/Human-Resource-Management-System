@@ -3,6 +3,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { biometricApi } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
+import { gates } from '@/lib/permissions';
 import { Icon } from '@/components/ui/Icon';
 import { EmptyState, LoadingState, ErrorState } from '@/components/ui/States';
 import { Pagination } from '@/components/ui/Pagination';
@@ -11,9 +13,15 @@ import { EnterpriseTable, type Column } from '@/components/ui/EnterpriseTable';
 import type { BiometricLog } from '@/lib/types';
 
 export default function BiometricPage() {
+  const { roles } = useAuth();
+  const canReadBiometric = gates.canReadBiometric(roles);
   const [page, setPage] = useState(0);
   const size = 20;
-  const logs = useQuery({ queryKey: ['biometric', page, size], queryFn: () => biometricApi.list(page, size) });
+  const logs = useQuery({
+    queryKey: ['biometric', page, size],
+    queryFn: () => biometricApi.list(page, size),
+    enabled: canReadBiometric,
+  });
 
   const columns: Column<BiometricLog>[] = [
     {

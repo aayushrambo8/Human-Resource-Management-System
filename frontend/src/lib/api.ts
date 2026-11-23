@@ -126,6 +126,10 @@ export const employeeApi = {
     const { data } = await api.get<Employee>(`/api/employees/${id}`);
     return data;
   },
+  async getMe() {
+    const { data } = await api.get<Employee>('/api/employee');
+    return data;
+  },
   /** POST /api/employees — 201 Created, returns the persisted Employee. */
   async create(body: EmployeeRequest) {
     const { data } = await api.post<Employee>('/api/employees', body);

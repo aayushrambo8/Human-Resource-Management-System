@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { motion, AnimatePresence } from '@/lib/motion';
 import { Icon } from './Icon';
 
 interface ModalProps {
@@ -15,10 +16,9 @@ interface ModalProps {
 }
 
 /**
- * Hand-rolled accessible dialog (no new dependency): role="dialog",
- * aria-modal, aria-labelledby on the title, Escape and backdrop dismissal,
- * initial focus on the first focusable control, focus restored to the element
- * that opened it, and body scroll locked while open.
+ * Accessible dialog enhanced with Framer Motion:
+ * role="dialog", aria-modal, aria-labelledby, Escape and backdrop dismissal,
+ * smooth spring physics entrance/exit, initial focus trap, and body scroll lock.
  */
 export function Modal({ open, onClose, title, description, children, busy = false }: ModalProps) {
   const titleId = useId();
@@ -58,44 +58,54 @@ export function Modal({ open, onClose, title, description, children, busy = fals
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [open, busy, onClose]);
 
-  if (!open) return null;
-
   return (
-    <div
-      className="modal-backdrop"
-      onMouseDown={(event) => {
-        // mousedown (not click) so a drag out of the dialog doesn't dismiss it.
-        if (event.target === event.currentTarget && !busy) onClose();
-      }}
-    >
-      <div
-        ref={dialogRef}
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        aria-describedby={description ? descriptionId : undefined}
-        tabIndex={-1}
-      >
-        <header className="modal-header">
-          <div>
-            <h2 id={titleId} className="text-balance">{title}</h2>
-            {description && (
-              <p id={descriptionId} className="text-balance">{description}</p>
-            )}
-          </div>
-          <button
-            type="button"
-            className="icon-button hit-slop"
-            onClick={onClose}
-            aria-label="Close dialog"
-            disabled={busy}
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          className="modal-backdrop"
+          onMouseDown={(event) => {
+            // mousedown (not click) so a drag out of the dialog doesn't dismiss it.
+            if (event.target === event.currentTarget && !busy) onClose();
+          }}
+        >
+          <motion.div
+            ref={dialogRef}
+            initial={{ opacity: 0, scale: 0.95, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            aria-describedby={description ? descriptionId : undefined}
+            tabIndex={-1}
           >
-            <Icon name="close" size={16} />
-          </button>
-        </header>
-        <div className="modal-body">{children}</div>
-      </div>
-    </div>
+            <header className="modal-header">
+              <div>
+                <h2 id={titleId} className="text-balance">{title}</h2>
+                {description && (
+                  <p id={descriptionId} className="text-balance">{description}</p>
+                )}
+              </div>
+              <button
+                type="button"
+                className="icon-button hit-slop"
+                onClick={onClose}
+                aria-label="Close dialog"
+                disabled={busy}
+              >
+                <Icon name="close" size={16} />
+              </button>
+            </header>
+            <div className="modal-body">{children}</div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

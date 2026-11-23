@@ -39,19 +39,18 @@ public class LocalDevBootstrapRunner implements ApplicationRunner {
     }
 
     @Override
-    @Transactional
     public void run(ApplicationArguments args) {
         // Standard system accounts
         ensureAccount("admin@northstar.edu", "Admin@123", "ADMIN", "EMP001");
-        ensureAccount("hr@northstar.edu", "Hr@123", "HR", "EMP003");
+        ensureAccount("hr@northstar.edu", "Hr@123", "HR", "EMP011");
         ensureAccount("user@northstar.edu", "User@123", "EMPLOYEE", "EMP101");
-        ensureAccount("admin@institution.local", "Password@123", "ADMIN", "EMP001");
+        ensureAccount("admin@institution.local", "Password@123", "ADMIN", null);
 
         // Test accounts for biometric & clock-out verification
         ensureAccount("marcus.vance@institution.local", "Password@123", "ADMIN", "EMP010");
-        ensureAccount("elena.rostova@institution.local", "Password@123", "HR", "EMP011");
+        ensureAccount("elena.rostova@institution.local", "Password@123", "HR", null);
         ensureAccount("david.chen@institution.local", "Password@123", "HR", "EMP012");
-        ensureAccount("sarah.connor@institution.local", "Password@123", "EMPLOYEE", "EMP101");
+        ensureAccount("sarah.connor@institution.local", "Password@123", "EMPLOYEE", null);
         ensureAccount("john.doe@institution.local", "Password@123", "EMPLOYEE", "EMP102");
         ensureAccount("emily.watson@institution.local", "Password@123", "EMPLOYEE", "EMP103");
         ensureAccount("michael.chang@institution.local", "Password@123", "EMPLOYEE", "EMP104");
@@ -64,9 +63,18 @@ public class LocalDevBootstrapRunner implements ApplicationRunner {
             Role role = roleRepository.findByCode(roleCode)
                     .orElseThrow(() -> new IllegalStateException("Role not found: " + roleCode));
 
-            Employee employee = employeeCode != null
-                    ? employeeRepository.findByEmployeeCode(employeeCode).orElse(null)
-                    : null;
+            Employee employee = null;
+            if (employeeCode != null) {
+                var empOpt = employeeRepository.findByEmployeeCode(employeeCode);
+                if (empOpt.isPresent()) {
+                    var emp = empOpt.get();
+                    if (!accountRepository.existsByEmployeeId(emp.getId())) {
+                        employee = emp;
+                    } else {
+                        log.info("Employee {} already linked to an account; creating {} as unlinked", employeeCode, email);
+                    }
+                }
+            }
 
             var existing = accountRepository.findByEmailIgnoreCase(email);
             if (existing.isEmpty()) {
