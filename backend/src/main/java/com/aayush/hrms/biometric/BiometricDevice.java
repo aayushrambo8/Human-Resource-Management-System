@@ -30,6 +30,15 @@ public class BiometricDevice extends BaseEntity {
     protected BiometricDevice() {
     }
 
+    public BiometricDevice(String deviceCode, String name, String ipAddress, String location, String tokenHash) {
+        this.deviceCode = deviceCode;
+        this.name = name;
+        this.ipAddress = ipAddress;
+        this.location = location;
+        this.tokenHash = tokenHash;
+        this.active = true;
+    }
+
     public String getDeviceCode() {
         return deviceCode;
     }

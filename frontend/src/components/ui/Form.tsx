@@ -27,7 +27,7 @@ export function FormField({ label, error, hint, id, className = '', ...inputProp
       <label htmlFor={fieldId} className="form-label">
         {label}
         {inputProps.required && (
-          <span aria-hidden="true" style={{ color: 'var(--danger)', marginLeft: 2 }}>
+          <span aria-hidden="true" style={{ color: 'var(--color-danger, #EF4444)', marginLeft: 3, fontWeight: 700 }}>
             *
           </span>
         )}
@@ -72,7 +72,7 @@ export function FormSelect({ label, error, hint, id, children, className = '', .
       <label htmlFor={fieldId} className="form-label">
         {label}
         {selectProps.required && (
-          <span aria-hidden="true" style={{ color: 'var(--danger)', marginLeft: 2 }}>
+          <span aria-hidden="true" style={{ color: 'var(--color-danger, #EF4444)', marginLeft: 3, fontWeight: 700 }}>
             *
           </span>
         )}
@@ -97,6 +97,84 @@ export function FormSelect({ label, error, hint, id, children, className = '', .
         </span>
       )}
     </div>
+  );
+}
+
+export interface FormRadioOption {
+  label: string;
+  value: string;
+}
+
+export interface FormRadioGroupProps {
+  label: string;
+  name: string;
+  options: FormRadioOption[];
+  value: string;
+  onChange: (value: string) => void;
+  required?: boolean;
+  error?: string;
+  hint?: string;
+  disabled?: boolean;
+}
+
+/**
+ * Mutually exclusive single-choice option group using styled circular radio knobs.
+ */
+export function FormRadioGroup({
+  label,
+  name,
+  options,
+  value,
+  onChange,
+  required,
+  error,
+  hint,
+  disabled,
+}: FormRadioGroupProps) {
+  const generatedId = useId();
+  const hintId = hint ? `${generatedId}-hint` : undefined;
+  const errorId = error ? `${generatedId}-error` : undefined;
+
+  return (
+    <fieldset className="form-fieldset" role="radiogroup">
+      <legend className="form-label">
+        {label}
+        {required && (
+          <span aria-hidden="true" style={{ color: 'var(--color-danger, #EF4444)', marginLeft: 3, fontWeight: 700 }}>
+            *
+          </span>
+        )}
+      </legend>
+      <div className="radio-group">
+        {options.map((opt) => {
+          const isSelected = value === opt.value;
+          return (
+            <label key={opt.value} className={`radio-option ${isSelected ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name={name}
+                value={opt.value}
+                checked={isSelected}
+                onChange={() => onChange(opt.value)}
+                disabled={disabled}
+                className="radio-knob"
+              />
+              <span>{opt.label}</span>
+            </label>
+          );
+        })}
+      </div>
+      {hint && (
+        <span className="form-hint" id={hintId}>
+          {hint}
+        </span>
+      )}
+      {error && (
+        <span className="form-error" id={errorId} role="alert">
+          {error}
+        </span>
+      )}
+    </fieldset>
   );
 }
 

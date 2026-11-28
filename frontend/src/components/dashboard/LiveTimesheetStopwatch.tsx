@@ -1,0 +1,270 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Icon } from '@/components/ui/Icon';
+import { BRANDING } from '@/lib/branding';
+
+interface LiveTimesheetStopwatchProps {
+  onPunchSuccess?: (record: { direction: 'IN' | 'OUT'; deviceCode: string; time: string }) => void;
+  isCheckedIn: boolean;
+  onToggleCheckIn: () => void;
+  todayDurationSeconds?: number;
+  activeSeconds?: number;
+  isOnBreak?: boolean;
+  breakSeconds?: number;
+  onToggleBreak?: () => void;
+}
+
+export function LiveTimesheetStopwatch({
+  onPunchSuccess,
+  isCheckedIn,
+  onToggleCheckIn,
+  todayDurationSeconds = 25420, // ~7h 03m 40s default demo
+  activeSeconds,
+  isOnBreak: controlledIsOnBreak,
+  breakSeconds: controlledBreakSeconds,
+  onToggleBreak,
+}: LiveTimesheetStopwatchProps) {
+  const [internalSeconds, setInternalSeconds] = useState(todayDurationSeconds);
+  const [internalIsOnBreak, setInternalIsOnBreak] = useState(false);
+  const [internalBreakSeconds, setInternalBreakSeconds] = useState(0);
+  const [celebration, setCelebration] = useState<{ message: string; sub: string; direction: 'IN' | 'OUT' } | null>(null);
+
+  const isControlled = activeSeconds !== undefined;
+  const currentSeconds = isControlled ? activeSeconds : internalSeconds;
+  const currentIsOnBreak = controlledIsOnBreak !== undefined ? controlledIsOnBreak : internalIsOnBreak;
+  const currentBreakSeconds = controlledBreakSeconds !== undefined ? controlledBreakSeconds : internalBreakSeconds;
+
+  useEffect(() => {
+    if (isControlled) return;
+    let interval: NodeJS.Timeout | null = null;
+    if (isCheckedIn && !currentIsOnBreak) {
+      interval = setInterval(() => {
+        setInternalSeconds((prev) => prev + 1);
+      }, 1000);
+    } else if (isCheckedIn && currentIsOnBreak) {
+      interval = setInterval(() => {
+        setInternalBreakSeconds((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isCheckedIn, currentIsOnBreak, isControlled]);
+
+  const formatHMS = (totalSeconds: number) => {
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+    return {
+      hrs: String(hrs).padStart(2, '0'),
+      mins: String(mins).padStart(2, '0'),
+      secs: String(secs).padStart(2, '0'),
+    };
+  };
+
+  const { hrs, mins, secs } = formatHMS(currentSeconds);
+  const breakTime = formatHMS(currentBreakSeconds);
+  const targetSeconds = 28800; // 8 hours standard workday
+  const progressPercent = Math.min(100, Math.round((currentSeconds / targetSeconds) * 100));
+
+  const handleAction = () => {
+    onToggleCheckIn();
+    const newDirection: 'IN' | 'OUT' = isCheckedIn ? 'OUT' : 'IN';
+    const now = new Date();
+    const timeFormatted = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+    // Peak-End Rule: trigger uplifting celebratory feedback
+    if (newDirection === 'IN') {
+      const hours = now.getHours();
+      const greeting = hours < 12 ? 'Good morning' : hours < 17 ? 'Good afternoon' : 'Welcome';
+      setCelebration({
+        message: `${greeting}! Verified check-in recorded at ${timeFormatted}.`,
+        sub: 'Your shift timer is live. Have a productive, high-impact day!',
+        direction: 'IN',
+      });
+    } else {
+      setCelebration({
+        message: `Shift concluded at ${timeFormatted}.`,
+        sub: `You logged ${hrs}h ${mins}m active time today. Rest well!`,
+        direction: 'OUT',
+      });
+    }
+
+    if (onPunchSuccess) {
+      onPunchSuccess({
+        direction: newDirection,
+        deviceCode: 'WEB-TERMINAL',
+        time: now.toISOString(),
+      });
+    }
+  };
+
+  const handleBreak = () => {
+    if (onToggleBreak) {
+      onToggleBreak();
+    } else {
+      setInternalIsOnBreak((prev) => !prev);
+    }
+  };
+
+  return (
+    <div
+      className={`relative overflow-hidden p-5 bg-[var(--color-surface)] text-[var(--color-text)] border transition-all duration-300 flex flex-col justify-between space-y-4 ${
+        isCheckedIn
+          ? 'border-[var(--color-primary)] shadow-lg ring-2 ring-[var(--color-primary)]/20'
+          : 'border-[var(--color-border)] shadow-sm hover:border-[var(--color-border-strong)]'
+      }`}
+      style={{
+        borderRadius: 'var(--card-radius, 16px)',
+      }}
+    >
+      {/* Decorative Glow matching current theme's primary color (Von Restorff Hero effect) */}
+      <div
+        className={`absolute -top-12 -right-12 size-40 rounded-full blur-3xl pointer-events-none transition-all duration-500 ${
+          isCheckedIn ? 'opacity-35 scale-125' : 'opacity-15'
+        }`}
+        style={{ background: 'var(--color-primary)' }}
+      />
+
+      {/* Header Info */}
+      <div className="relative z-10 flex items-start justify-between gap-2">
+        <div>
+          <div className="flex items-center gap-2">
+            <span
+              className={`size-2.5 rounded-full transition-colors ${
+                isCheckedIn
+                  ? 'bg-emerald-500 animate-pulse'
+                  : 'bg-[var(--color-text-muted)] opacity-60'
+              }`}
+            />
+            <span className="text-[10.5px] font-mono tracking-wider uppercase font-semibold text-[var(--color-text-muted)]">
+              {isCheckedIn ? (currentIsOnBreak ? 'On Break' : 'Active Attendance') : 'Checked Out'}
+            </span>
+          </div>
+          <h2 className="text-base font-bold text-[var(--color-text)] mt-1 tracking-tight">
+            Daily Attendance Stopwatch
+          </h2>
+          <p className="text-[11px] text-[var(--color-text-muted)]">
+            Official terminal logging · {BRANDING.name}
+          </p>
+        </div>
+
+        <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-[var(--color-surface-elevated)] border border-[var(--color-border)] text-[var(--color-text-muted)] shrink-0 shadow-2xs">
+          Target: 08h 00m
+        </span>
+      </div>
+
+      {/* Peak-End Rule: Celebratory Punch Feedback Toast */}
+      <AnimatePresence>
+        {celebration && (
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.95 }}
+            className={`relative z-10 p-3 rounded-xl border text-xs shadow-xs flex items-start justify-between gap-2 ${
+              celebration.direction === 'IN'
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200'
+                : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200'
+            }`}
+          >
+            <div className="space-y-0.5">
+              <strong className="block font-bold">{celebration.message}</strong>
+              <p className="text-[11px] opacity-85 leading-relaxed">{celebration.sub}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCelebration(null)}
+              className="text-[10px] font-mono opacity-60 hover:opacity-100 p-0.5 cursor-pointer"
+              aria-label="Dismiss celebration message"
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Digital Counter Display */}
+      <div className="relative z-10 py-3 text-center space-y-1.5 bg-[var(--color-canvas-secondary)] rounded-xl border border-[var(--color-border)] p-3 transition-colors">
+        <div className="flex items-baseline justify-center gap-1 font-mono text-4xl sm:text-5xl font-black tracking-tight tabular-nums text-[var(--color-text)]">
+          <span>{hrs}</span>
+          <span className="text-[var(--color-primary)] opacity-85 animate-pulse">:</span>
+          <span>{mins}</span>
+          <span className="text-[var(--color-primary)] opacity-85 animate-pulse">:</span>
+          <span className="text-[var(--color-primary)]">{secs}</span>
+        </div>
+        <p className="text-[11px] font-mono text-[var(--color-text-muted)]">
+          {currentIsOnBreak ? `Break duration: ${breakTime.mins}m ${breakTime.secs}s` : 'Logged active productive time today'}
+        </p>
+      </div>
+
+      {/* Zeigarnik Effect: Daily 8-hour shift progress bar */}
+      <div className="relative z-10 space-y-1">
+        <div className="flex items-center justify-between text-[10.5px] font-mono">
+          <span className="text-[var(--color-text-muted)]">Daily Shift Goal</span>
+          <span className="font-bold text-[var(--color-primary)]">
+            {progressPercent}% ({hrs}h {mins}m / 08h 00m)
+          </span>
+        </div>
+        <div className="h-2 w-full rounded-full bg-[var(--color-canvas)] border border-[var(--color-border)] overflow-hidden">
+          <motion.div
+            className="h-full rounded-full bg-[var(--color-primary)]"
+            initial={{ width: 0 }}
+            animate={{ width: `${progressPercent}%` }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+          />
+        </div>
+      </div>
+
+      {/* Telemetry Chips */}
+      <div className="relative z-10 grid grid-cols-1 gap-1.5 text-[10.5px] font-mono">
+        <div className="px-2.5 py-1.5 rounded-lg bg-[var(--color-surface-elevated)] border border-[var(--color-border)] text-[var(--color-text)] truncate flex items-center justify-between">
+          <span className="text-[var(--color-text-muted)]">Weekly Working Hours</span>
+          <span className="font-bold text-[var(--color-text)]">38h 45m / 40h</span>
+        </div>
+        <div className="px-2.5 py-1.5 rounded-lg bg-[var(--color-surface-elevated)] border border-[var(--color-border)] text-[var(--color-text)] truncate flex items-center justify-between">
+          <span className="text-[var(--color-text-muted)]">On-Time Arrival Rate</span>
+          <span className="font-bold text-[var(--color-primary)]">96.4%</span>
+        </div>
+      </div>
+
+      {/* Action Controls - Hick's Law: 1 clear primary CTA */}
+      <div className="relative z-10 flex items-center gap-2 pt-1">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          type="button"
+          onClick={handleAction}
+          className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.97] ${
+            isCheckedIn
+              ? 'bg-[var(--color-surface-elevated)] text-[var(--color-danger,#DC2626)] border border-[var(--color-border)] hover:bg-[var(--color-canvas-secondary)] shadow-xs'
+              : 'btn-primary'
+          }`}
+          style={
+            !isCheckedIn
+              ? {
+                  backgroundColor: 'var(--color-primary)',
+                  color: '#FFFFFF',
+                  boxShadow: '0 2px 10px -1px color-mix(in srgb, var(--color-primary) 40%, transparent)',
+                }
+              : undefined
+          }
+        >
+          <Icon name="clock" size={15} />
+          <span>{isCheckedIn ? 'Clock Out' : 'Clock In'}</span>
+        </motion.button>
+
+        {isCheckedIn && (
+          <button
+            type="button"
+            onClick={handleBreak}
+            className="py-2.5 px-3 rounded-xl font-semibold text-xs bg-[var(--color-surface-elevated)] hover:bg-[var(--color-canvas-secondary)] text-[var(--color-text)] border border-[var(--color-border)] transition-transform active:scale-[0.97] cursor-pointer shrink-0"
+          >
+            {currentIsOnBreak ? 'Resume' : 'Break'}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}

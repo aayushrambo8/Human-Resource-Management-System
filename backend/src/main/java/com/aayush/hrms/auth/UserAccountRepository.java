@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserAccountRepository extends JpaRepository<UserAccount, UUID> {
     Optional<UserAccount> findByEmailIgnoreCase(String email);
+    Optional<UserAccount> findByEmployeeId(UUID employeeId);
+    boolean existsByEmployeeId(UUID employeeId);
 }

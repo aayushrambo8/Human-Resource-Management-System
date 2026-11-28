@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 public record CreateAccountRequest(
         @NotBlank @Email @Size(max = 180) String email,
-        @NotBlank @Size(min = 12, max = 72) String password,
+        @NotBlank @Size(min = 6, max = 72) String password,
         @NotEmpty Set<@NotBlank String> roles,
         @Size(max = 40) String employeeCode) {
 

@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 
 public record AuthRequest(
         @NotBlank @Email @Size(max = 180) String email,
-        @NotBlank @Size(min = 12, max = 72) String password) {
+        @NotBlank @Size(min = 6, max = 72) String password) {
 
     @AssertTrue(message = "Password must be at most 72 UTF-8 bytes")
     public boolean isPasswordWithinBcryptLimit() {

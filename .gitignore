@@ -21,6 +21,9 @@
 # IDE
 .idea/
 .vscode/
+.agents/
+screenshots/
+.stitch/
 
 # OS
 .DS_Store

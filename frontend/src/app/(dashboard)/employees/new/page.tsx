@@ -57,10 +57,15 @@ export default function NewEmployeePage() {
         </div>
       </header>
 
-      <section aria-label="Create employee">
+      <section aria-label="Create employee" className="max-w-4xl w-full">
         <Island>
           <IslandHeader>
-            <h2>Employee details</h2>
+            <div>
+              <h2>Employee details</h2>
+              <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                Provide the essential identification, contact, and assignment information.
+              </p>
+            </div>
           </IslandHeader>
           <IslandBody>
             <EmployeeForm

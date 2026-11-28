@@ -85,6 +85,7 @@ export function EmployeeForm({ initialValues, submitLabel, onSubmit, onCancel }:
         <FormField
           label="Employee code"
           required
+          placeholder="e.g. EMP-001"
           value={values.employeeCode}
           onChange={(e) => set('employeeCode', e.target.value)}
           error={errors.employeeCode}
@@ -111,6 +112,7 @@ export function EmployeeForm({ initialValues, submitLabel, onSubmit, onCancel }:
         <FormField
           label="First name"
           required
+          placeholder="e.g. Jane"
           value={values.firstName}
           onChange={(e) => set('firstName', e.target.value)}
           error={errors.firstName}
@@ -121,6 +123,7 @@ export function EmployeeForm({ initialValues, submitLabel, onSubmit, onCancel }:
         <FormField
           label="Last name"
           required
+          placeholder="e.g. Doe"
           value={values.lastName}
           onChange={(e) => set('lastName', e.target.value)}
           error={errors.lastName}
@@ -132,6 +135,7 @@ export function EmployeeForm({ initialValues, submitLabel, onSubmit, onCancel }:
         <FormField
           label="Email"
           type="email"
+          placeholder="e.g. jane.doe@company.com"
           value={values.email}
           onChange={(e) => set('email', e.target.value)}
           error={errors.email}
@@ -143,6 +147,7 @@ export function EmployeeForm({ initialValues, submitLabel, onSubmit, onCancel }:
         <FormField
           label="Phone"
           type="tel"
+          placeholder="e.g. +1 555-0123"
           value={values.phone}
           onChange={(e) => set('phone', e.target.value)}
           error={errors.phone}

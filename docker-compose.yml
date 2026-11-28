@@ -44,6 +44,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
+      SPRING_PROFILES_ACTIVE: postgres
       HRMS_DB_URL: jdbc:postgresql://postgres:5432/${HRMS_DB_NAME:-hrms}
       HRMS_DB_USERNAME: ${HRMS_DB_USERNAME:-hrms}
       HRMS_DB_PASSWORD: ${HRMS_DB_PASSWORD:?Set up the project before starting}

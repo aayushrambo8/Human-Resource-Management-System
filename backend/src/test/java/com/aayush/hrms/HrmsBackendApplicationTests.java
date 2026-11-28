@@ -193,6 +193,41 @@ class HrmsBackendApplicationTests {
 						.content("{\"status\":\"APPROVED\"}"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("APPROVED"));
+
+		// Verify Biometric Clock In for seeded test user EMP101
+		mockMvc.perform(post("/api/biometric/attendance")
+						.header("X-Device-Token", "change-me-device-token")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"deviceCode":"BIO-001","employeeCode":"EMP101",
+								 "punchTime":"2026-10-08T09:00:00Z","direction":"IN"}
+								"""))
+				.andExpect(status().isAccepted())
+				.andExpect(jsonPath("$.status").value("ACCEPTED"))
+				.andExpect(jsonPath("$.attendanceRecordId").isNotEmpty());
+
+		// Verify Biometric Clock Out for EMP101 -> DB must be updated with clockout and timesheet
+		mockMvc.perform(post("/api/biometric/attendance")
+						.header("X-Device-Token", "change-me-device-token")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"deviceCode":"BIO-001","employeeCode":"EMP101",
+								 "punchTime":"2026-10-08T17:30:00Z","direction":"OUT"}
+								"""))
+				.andExpect(status().isAccepted())
+				.andExpect(jsonPath("$.status").value("ACCEPTED"))
+				.andExpect(jsonPath("$.attendanceRecordId").isNotEmpty());
+
+		// Verify Web Attendance Clock Out punch endpoint
+		mockMvc.perform(post("/api/attendance/punch")
+						.header("Authorization", "Bearer " + employeeToken)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("""
+								{"direction":"OUT","deviceCode":"WEB-TERMINAL","punchTime":"2026-10-08T18:00:00Z"}
+								"""))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.direction").value("OUT"))
+				.andExpect(jsonPath("$.deviceCode").value("WEB-TERMINAL"));
 	}
 
 }

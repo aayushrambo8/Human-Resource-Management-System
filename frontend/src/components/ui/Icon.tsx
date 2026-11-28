@@ -1,7 +1,59 @@
-import type { SVGProps } from 'react';
+'use client';
+
+import React from 'react';
+import { motion, type SVGMotionProps, type Variants } from 'motion/react';
+import { useAnimateIconContext, AnimateIcon, IconWrapper } from '@animate-ui/react/icons';
+import {
+  LayoutDashboard,
+  Users,
+  User,
+  Building2,
+  Clock,
+  Fingerprint,
+  Calendar,
+  Settings,
+  ChevronRight,
+  LogOut,
+  ArrowRight,
+  Plus,
+  Menu,
+  X,
+  AlertTriangle,
+  Briefcase,
+  Mail,
+  Phone,
+  ArrowLeft,
+  Activity,
+  AlertCircle,
+  Info,
+  Server,
+  Sun,
+  Moon,
+  Search,
+  Filter,
+  Download,
+  MoreVertical,
+  Check,
+  CheckCircle2,
+  XCircle,
+  Bell,
+  SlidersHorizontal,
+  ChevronDown,
+  Layers,
+  Sparkles,
+  RefreshCw,
+  TrendingUp,
+  TrendingDown,
+  Cake,
+  Award,
+  CircleDot,
+  FileText,
+  ShieldCheck,
+} from 'lucide-react';
 
 export type IconName =
   | 'grid'
+  | 'user'
   | 'users'
   | 'building'
   | 'clock'
@@ -9,6 +61,7 @@ export type IconName =
   | 'calendar'
   | 'settings'
   | 'chevron'
+  | 'chevron-down'
   | 'logout'
   | 'arrow'
   | 'plus'
@@ -24,162 +77,339 @@ export type IconName =
   | 'info'
   | 'server'
   | 'sun'
-  | 'moon';
+  | 'moon'
+  | 'search'
+  | 'filter'
+  | 'download'
+  | 'more'
+  | 'check'
+  | 'check-circle'
+  | 'x-circle'
+  | 'bell'
+  | 'sliders'
+  | 'layers'
+  | 'sparkles'
+  | 'refresh'
+  | 'trending-up'
+  | 'trending-down'
+  | 'cake'
+  | 'award'
+  | 'dot'
+  | 'file'
+  | 'shield';
 
-const paths: Record<IconName, React.ReactNode> = {
-  grid: (
-    <>
-      <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
-      <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
-      <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
-      <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" />
-    </>
-  ),
-  users: (
-    <>
-      <path d="M16 20v-1.5a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4V20" />
-      <circle cx="9.5" cy="7.5" r="4" />
-      <path d="M17 11a4 4 0 0 0 0-7.8M21 20v-1.5a4 4 0 0 0-3-3.9" />
-    </>
-  ),
-  building: (
-    <>
-      <rect x="4" y="3" width="16" height="18" rx="2" />
-      <path d="M9 21v-4h6v4M8 7h2m4 0h2M8 11h2m4 0h2" />
-    </>
-  ),
-  clock: (
-    <>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5l3 2" />
-    </>
-  ),
-  fingerprint: (
-    <>
-      <path d="M12 11v2a2 2 0 0 1-4 0v-2a4 4 0 0 1 8 0v3a4 4 0 0 1-4 4" />
-      <path d="M6 12v1a6 6 0 0 0 2 4.5M18 12v2a6 6 0 0 1-1 3.3M12 3a9 9 0 0 0-9 9v1m18 0v-1a9 9 0 0 0-9-9" />
-    </>
-  ),
-  calendar: (
-    <>
-      <rect x="3" y="5" width="18" height="16" rx="2" />
-      <path d="M16 3v4M8 3v4M3 10h18" />
-    </>
-  ),
-  settings: (
-    <>
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.7 1.7-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.4v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1L8 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H6.7v-2.4h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9L8 8.6l1.7-1.7.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.2h2.4v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.7 1.7-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2v2.4h-.2a1.7 1.7 0 0 0-1.5 1Z" />
-    </>
-  ),
-  chevron: <path d="m9 18 6-6-6-6" />,
-  logout: (
-    <>
-      <path d="M10 17l5-5-5-5M15 12H3" />
-      <path d="M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6" />
-    </>
-  ),
-  arrow: (
-    <>
-      <path d="M7 17 17 7M7 7h10v10" />
-    </>
-  ),
-  plus: (
-    <>
-      <path d="M12 5v14M5 12h14" />
-    </>
-  ),
-  menu: (
-    <>
-      <path d="M4 6h16M4 12h16M4 18h16" />
-    </>
-  ),
-  close: (
-    <>
-      <path d="m6 6 12 12M18 6 6 18" />
-    </>
-  ),
-  warning: (
-    <>
-      <path d="m10.3 3.9-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3.1l-8-14a2 2 0 0 0-3.4 0Z" />
-      <path d="M12 9v4m0 4h.01" />
-    </>
-  ),
-  briefcase: (
-    <>
-      <rect x="3" y="7" width="18" height="14" rx="2" />
-      <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18m-11 0v2h4v-2" />
-    </>
-  ),
-  mail: (
-    <>
-      <rect x="3" y="5" width="18" height="14" rx="2" />
-      <path d="m3 7 9 6 9-6" />
-    </>
-  ),
-  phone: (
-    <>
-      <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.7 2Z" />
-    </>
-  ),
-  back: (
-    <>
-      <path d="m15 18-6-6 6-6M9 12h12" />
-    </>
-  ),
-  activity: (
-    <>
-      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-    </>
-  ),
-  alert: (
-    <>
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 8v4M12 16h.01" />
-    </>
-  ),
-  info: (
-    <>
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 16v-4M12 8h.01" />
-    </>
-  ),
-  server: (
-    <>
-      <rect x="2" y="2" width="20" height="8" rx="2" />
-      <rect x="2" y="14" width="20" height="8" rx="2" />
-      <path d="M6 6h12M6 18h12" />
-    </>
-  ),
-  sun: (
-    <>
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-    </>
-  ),
-  moon: <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />,
+export interface IconProps extends Omit<SVGMotionProps<SVGSVGElement>, 'name'> {
+  name: IconName;
+  size?: number | string;
+  className?: string;
+  strokeWidth?: number;
+  animateOnHover?: boolean;
+  animateOnTap?: boolean;
+  variants?: Variants;
+}
+
+const VARIANTS: Record<string, Variants> = {
+  rotate360: {
+    initial: { rotate: 0 },
+    animate: {
+      rotate: 360,
+      transition: { duration: 0.65, ease: [0.16, 1, 0.3, 1] },
+    },
+    hover: {
+      rotate: 180,
+      transition: { duration: 0.45, ease: 'easeOut' },
+    },
+    tap: { scale: 0.9, rotate: 210 },
+  },
+  rotate90: {
+    initial: { rotate: 0 },
+    animate: {
+      rotate: 90,
+      transition: { duration: 0.35, ease: 'easeOut' },
+    },
+    hover: {
+      rotate: 90,
+      transition: { duration: 0.35, ease: 'easeOut' },
+    },
+    tap: { scale: 0.9, rotate: 110 },
+  },
+  rotate45: {
+    initial: { rotate: 0, scale: 1 },
+    animate: {
+      rotate: [0, 45, 0],
+      scale: [1, 1.15, 1],
+      transition: { duration: 0.5, ease: 'easeInOut' },
+    },
+    hover: {
+      rotate: 45,
+      scale: 1.1,
+      transition: { duration: 0.3, ease: 'easeOut' },
+    },
+    tap: { scale: 0.9, rotate: 60 },
+  },
+  ring: {
+    initial: { rotate: 0, transformOrigin: 'top center' },
+    animate: {
+      rotate: [0, 15, -12, 8, -4, 0],
+      transition: { duration: 0.65, ease: 'easeInOut' },
+    },
+    hover: {
+      rotate: [0, 15, -12, 8, -4, 0],
+      transition: { duration: 0.65, ease: 'easeInOut' },
+    },
+    tap: { scale: 0.92 },
+  },
+  pulse: {
+    initial: { scale: 1 },
+    animate: {
+      scale: [1, 1.18, 1],
+      transition: { duration: 0.4, ease: 'easeInOut' },
+    },
+    hover: {
+      scale: 1.12,
+      transition: { duration: 0.25, ease: 'easeOut' },
+    },
+    tap: { scale: 0.9 },
+  },
+  slideRight: {
+    initial: { x: 0 },
+    animate: {
+      x: [0, 4, 0],
+      transition: { duration: 0.35, ease: 'easeInOut' },
+    },
+    hover: {
+      x: 3,
+      transition: { duration: 0.2, ease: 'easeOut' },
+    },
+    tap: { scale: 0.92, x: 1 },
+  },
+  slideLeft: {
+    initial: { x: 0 },
+    animate: {
+      x: [0, -4, 0],
+      transition: { duration: 0.35, ease: 'easeInOut' },
+    },
+    hover: {
+      x: -3,
+      transition: { duration: 0.2, ease: 'easeOut' },
+    },
+    tap: { scale: 0.92, x: -1 },
+  },
+  slideDown: {
+    initial: { y: 0 },
+    animate: {
+      y: [0, 4, 0],
+      transition: { duration: 0.35, ease: 'easeInOut' },
+    },
+    hover: {
+      y: 3,
+      transition: { duration: 0.2, ease: 'easeOut' },
+    },
+    tap: { scale: 0.92, y: 1 },
+  },
+  slideUpRight: {
+    initial: { x: 0, y: 0 },
+    animate: {
+      x: [0, 2, 0],
+      y: [0, -2, 0],
+      transition: { duration: 0.35, ease: 'easeInOut' },
+    },
+    hover: {
+      x: 2,
+      y: -2,
+      transition: { duration: 0.2, ease: 'easeOut' },
+    },
+    tap: { scale: 0.92 },
+  },
+  slideDownRight: {
+    initial: { x: 0, y: 0 },
+    animate: {
+      x: [0, 2, 0],
+      y: [0, 2, 0],
+      transition: { duration: 0.35, ease: 'easeInOut' },
+    },
+    hover: {
+      x: 2,
+      y: 2,
+      transition: { duration: 0.2, ease: 'easeOut' },
+    },
+    tap: { scale: 0.92 },
+  },
+  bounce: {
+    initial: { scale: 1 },
+    animate: {
+      scale: [1, 1.25, 1],
+      transition: { duration: 0.4, ease: 'easeOut' },
+    },
+    hover: {
+      scale: 1.15,
+      transition: { duration: 0.2, ease: 'easeOut' },
+    },
+    tap: { scale: 0.9 },
+  },
+  sparkle: {
+    initial: { scale: 1, rotate: 0 },
+    animate: {
+      scale: [1, 1.2, 1],
+      rotate: [0, -12, 12, 0],
+      transition: { duration: 0.5, ease: 'easeInOut' },
+    },
+    hover: {
+      scale: 1.15,
+      rotate: 10,
+      transition: { duration: 0.25, ease: 'easeOut' },
+    },
+    tap: { scale: 0.9, rotate: -5 },
+  },
+  lift: {
+    initial: { scale: 1, y: 0 },
+    animate: {
+      y: [0, -2, 0],
+      scale: [1, 1.06, 1],
+      transition: { duration: 0.35, ease: 'easeInOut' },
+    },
+    hover: {
+      y: -1.5,
+      scale: 1.08,
+      transition: { duration: 0.2, ease: 'easeOut' },
+    },
+    tap: { scale: 0.92, y: 0 },
+  },
 };
 
-interface IconProps extends SVGProps<SVGSVGElement> {
-  name: IconName;
-  size?: number;
-}
+const VARIANT_NAMES: Record<IconName, keyof typeof VARIANTS> = {
+  refresh: 'rotate360',
+  settings: 'rotate90',
+  plus: 'rotate90',
+  sun: 'rotate45',
 
-export function Icon({ name, size = 20, ...props }: IconProps) {
+  bell: 'ring',
+  phone: 'ring',
+  warning: 'ring',
+  alert: 'ring',
+
+  arrow: 'slideRight',
+  chevron: 'slideRight',
+  logout: 'slideRight',
+  back: 'slideLeft',
+  'chevron-down': 'slideDown',
+  download: 'slideDown',
+  'trending-up': 'slideUpRight',
+  'trending-down': 'slideDownRight',
+
+  check: 'bounce',
+  'check-circle': 'bounce',
+  'x-circle': 'bounce',
+  close: 'bounce',
+
+  sparkles: 'sparkle',
+  award: 'sparkle',
+  cake: 'sparkle',
+
+  search: 'pulse',
+  activity: 'pulse',
+  fingerprint: 'pulse',
+  shield: 'pulse',
+
+  grid: 'lift',
+  user: 'lift',
+  users: 'lift',
+  building: 'lift',
+  clock: 'lift',
+  calendar: 'lift',
+  briefcase: 'lift',
+  mail: 'lift',
+  info: 'lift',
+  server: 'lift',
+  moon: 'lift',
+  filter: 'lift',
+  more: 'lift',
+  sliders: 'lift',
+  layers: 'lift',
+  dot: 'lift',
+  file: 'lift',
+  menu: 'lift',
+};
+
+const ICON_COMPONENTS = {
+  grid: motion.create(LayoutDashboard),
+  user: motion.create(User),
+  users: motion.create(Users),
+  building: motion.create(Building2),
+  clock: motion.create(Clock),
+  fingerprint: motion.create(Fingerprint),
+  calendar: motion.create(Calendar),
+  settings: motion.create(Settings),
+  chevron: motion.create(ChevronRight),
+  'chevron-down': motion.create(ChevronDown),
+  logout: motion.create(LogOut),
+  arrow: motion.create(ArrowRight),
+  back: motion.create(ArrowLeft),
+  plus: motion.create(Plus),
+  menu: motion.create(Menu),
+  close: motion.create(X),
+  warning: motion.create(AlertTriangle),
+  briefcase: motion.create(Briefcase),
+  mail: motion.create(Mail),
+  phone: motion.create(Phone),
+  activity: motion.create(Activity),
+  alert: motion.create(AlertCircle),
+  info: motion.create(Info),
+  server: motion.create(Server),
+  sun: motion.create(Sun),
+  moon: motion.create(Moon),
+  search: motion.create(Search),
+  filter: motion.create(Filter),
+  download: motion.create(Download),
+  more: motion.create(MoreVertical),
+  check: motion.create(Check),
+  'check-circle': motion.create(CheckCircle2),
+  'x-circle': motion.create(XCircle),
+  bell: motion.create(Bell),
+  sliders: motion.create(SlidersHorizontal),
+  layers: motion.create(Layers),
+  sparkles: motion.create(Sparkles),
+  refresh: motion.create(RefreshCw),
+  'trending-up': motion.create(TrendingUp),
+  'trending-down': motion.create(TrendingDown),
+  cake: motion.create(Cake),
+  award: motion.create(Award),
+  dot: motion.create(CircleDot),
+  file: motion.create(FileText),
+  shield: motion.create(ShieldCheck),
+};
+
+const FallbackIcon = motion.create(CircleDot);
+
+export function Icon({
+  name,
+  size = 16,
+  className = '',
+  strokeWidth = 1.75,
+  animateOnHover = true,
+  animateOnTap = true,
+  variants,
+  ...rest
+}: IconProps) {
+  const { controls } = useAnimateIconContext();
+  const Component = (ICON_COMPONENTS[name] ?? FallbackIcon) as React.ComponentType<any>;
+  const variantKey = VARIANT_NAMES[name] ?? 'lift';
+  const effectiveVariants = variants ?? VARIANTS[variantKey];
+
   return (
-    <svg
-      aria-hidden="true"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      {paths[name]}
-    </svg>
+    <Component
+      size={size}
+      className={className}
+      strokeWidth={strokeWidth}
+      variants={effectiveVariants}
+      initial="initial"
+      animate={controls}
+      whileHover={animateOnHover ? 'hover' : undefined}
+      whileTap={animateOnTap ? 'tap' : undefined}
+      transition={{ type: 'spring', stiffness: 380, damping: 22 }}
+      {...rest}
+    />
   );
 }
+
+export { AnimateIcon, IconWrapper };

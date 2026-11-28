@@ -49,12 +49,10 @@ export function AccountForm({ onCancel }: AccountFormProps) {
     setSuccess('');
   };
 
-  const toggleRole = (role: string) => {
+  const selectRole = (role: string) => {
     setValues((current) => ({
       ...current,
-      roles: current.roles.includes(role)
-        ? current.roles.filter((r) => r !== role)
-        : [...current.roles, role],
+      roles: [role],
     }));
     setErrors((current) => ({ ...current, roles: undefined }));
     setSubmitError('');
@@ -92,81 +90,91 @@ export function AccountForm({ onCancel }: AccountFormProps) {
       {submitError && <FormAlert>{submitError}</FormAlert>}
       {success && <FormSuccess>{success}</FormSuccess>}
 
-      <FormField
-        label="Email"
-        type="email"
-        required
-        value={values.email}
-        onChange={(e) => setField('email', e.target.value)}
-        error={errors.email}
-        placeholder="name@institution.local"
-        maxLength={180}
-        autoComplete="off"
-        disabled={submitting}
-      />
+      <div className="form-grid">
+        <FormField
+          label="Email"
+          type="email"
+          required
+          value={values.email}
+          onChange={(e) => setField('email', e.target.value)}
+          error={errors.email}
+          placeholder="name@institution.local"
+          maxLength={180}
+          autoComplete="off"
+          disabled={submitting}
+        />
 
-      <FormField
-        label="Password"
-        type="password"
-        required
-        value={values.password}
-        onChange={(e) => setField('password', e.target.value)}
-        error={errors.password}
-        hint="12–72 characters, and at most 72 UTF-8 bytes (bcrypt limit)."
-        autoComplete="new-password"
-        disabled={submitting}
-      />
+        <FormField
+          label="Password"
+          type="password"
+          required
+          value={values.password}
+          onChange={(e) => setField('password', e.target.value)}
+          error={errors.password}
+          hint="12–72 characters (max 72 UTF-8 bytes)."
+          autoComplete="new-password"
+          disabled={submitting}
+        />
 
-      <fieldset className="form-fieldset">
-        <legend className="form-label">
-          Roles
-          <span aria-hidden="true" style={{ color: 'var(--danger)', marginLeft: 2 }}>
-            *
-          </span>
-        </legend>
-        <div className="role-options">
-          {ROLE_CODES.map((role) => (
-            <label key={role} className="role-option">
-              <input
-                type="checkbox"
-                checked={values.roles.includes(role)}
-                onChange={() => toggleRole(role)}
-                disabled={submitting}
-              />
-              <span>{role}</span>
-            </label>
-          ))}
+        <fieldset className="form-fieldset" role="radiogroup">
+          <legend className="form-label">
+            Role
+            <span aria-hidden="true" style={{ color: 'var(--color-danger, #EF4444)', marginLeft: 3, fontWeight: 700 }}>
+              *
+            </span>
+          </legend>
+          <div className="role-options">
+            {ROLE_CODES.map((role) => {
+              const isSelected = values.roles.includes(role);
+              return (
+                <label key={role} className={`role-option ${isSelected ? 'selected' : ''}`}>
+                  <input
+                    type="radio"
+                    name="account-role"
+                    value={role}
+                    checked={isSelected}
+                    onChange={() => selectRole(role)}
+                    disabled={submitting}
+                    className="radio-knob"
+                  />
+                  <span>{role}</span>
+                </label>
+              );
+            })}
+          </div>
+          {errors.roles ? (
+            <span className="form-error" role="alert">
+              {errors.roles}
+            </span>
+          ) : (
+            <span className="form-hint">
+              ADMIN has all access; HR has operational access; EMPLOYEE has self-service access.
+            </span>
+          )}
+        </fieldset>
+
+        <div>
+          <FormField
+            label="Employee code"
+            value={values.employeeCode}
+            onChange={(e) => setField('employeeCode', e.target.value)}
+            error={errors.employeeCode}
+            hint="Optional — links account to directory."
+            list="employee-code-options"
+            placeholder="e.g. EMP-001"
+            maxLength={40}
+            autoComplete="off"
+            disabled={submitting}
+          />
+          <datalist id="employee-code-options">
+            {employees.data?.map((employee) => (
+              <option key={employee.id} value={employee.employeeCode}>
+                {employee.firstName} {employee.lastName}
+              </option>
+            ))}
+          </datalist>
         </div>
-        {errors.roles ? (
-          <span className="form-error" role="alert">
-            {errors.roles}
-          </span>
-        ) : (
-          <span className="form-hint">
-            ADMIN has every permission, HR every permission except account creation,
-            EMPLOYEE only leave submission.
-          </span>
-        )}
-      </fieldset>
-
-      <FormField
-        label="Employee code"
-        value={values.employeeCode}
-        onChange={(e) => setField('employeeCode', e.target.value)}
-        error={errors.employeeCode}
-        hint="Optional — links the account to an existing directory record (max 40 characters)."
-        list="employee-code-options"
-        maxLength={40}
-        autoComplete="off"
-        disabled={submitting}
-      />
-      <datalist id="employee-code-options">
-        {employees.data?.map((employee) => (
-          <option key={employee.id} value={employee.employeeCode}>
-            {employee.firstName} {employee.lastName}
-          </option>
-        ))}
-      </datalist>
+      </div>
 
       <FormActions>
         <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={submitting}>

@@ -19,6 +19,8 @@ export function saveTokens(tokens: TokenResponse) {
   if (typeof window !== 'undefined') {
     sessionStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
     sessionStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+    localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
   }
 }
 
@@ -26,22 +28,27 @@ export function clearTokens() {
   if (typeof window !== 'undefined') {
     sessionStorage.removeItem(ACCESS_TOKEN_KEY);
     sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
   }
 }
 
 export function hasSession() {
   if (typeof window === 'undefined') return false;
-  return Boolean(sessionStorage.getItem(ACCESS_TOKEN_KEY) && sessionStorage.getItem(REFRESH_TOKEN_KEY));
+  const access = sessionStorage.getItem(ACCESS_TOKEN_KEY) || localStorage.getItem(ACCESS_TOKEN_KEY);
+  const refresh = sessionStorage.getItem(REFRESH_TOKEN_KEY) || localStorage.getItem(REFRESH_TOKEN_KEY);
+  return Boolean(access && refresh);
 }
 
 export function getSessionEmail() {
   if (typeof window === 'undefined') return '';
-  return sessionStorage.getItem('hrms.email') ?? '';
+  return sessionStorage.getItem('hrms.email') || localStorage.getItem('hrms.email') || '';
 }
 
 export function saveSessionEmail(email: string) {
   if (typeof window !== 'undefined') {
     sessionStorage.setItem('hrms.email', email);
+    localStorage.setItem('hrms.email', email);
   }
 }
 
@@ -50,13 +57,14 @@ const ROLES_KEY = 'hrms.roles';
 export function saveSessionRoles(roles: string[]) {
   if (typeof window !== 'undefined') {
     sessionStorage.setItem(ROLES_KEY, JSON.stringify(roles));
+    localStorage.setItem(ROLES_KEY, JSON.stringify(roles));
   }
 }
 
 export function getSessionRoles(): string[] {
   if (typeof window === 'undefined') return [];
   try {
-    const raw = sessionStorage.getItem(ROLES_KEY);
+    const raw = sessionStorage.getItem(ROLES_KEY) || localStorage.getItem(ROLES_KEY);
     const parsed: unknown = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed.filter((role): role is string => typeof role === 'string') : [];
   } catch {
@@ -67,13 +75,22 @@ export function getSessionRoles(): string[] {
 export function clearSessionRoles() {
   if (typeof window !== 'undefined') {
     sessionStorage.removeItem(ROLES_KEY);
+    localStorage.removeItem(ROLES_KEY);
   }
 }
 
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
-    const token = sessionStorage.getItem(ACCESS_TOKEN_KEY);
+    const token = sessionStorage.getItem(ACCESS_TOKEN_KEY) || localStorage.getItem(ACCESS_TOKEN_KEY);
     if (token) config.headers.Authorization = `Bearer ${token}`;
+
+    // Attach client-side Idempotency-Key for state mutations (Rule 19)
+    const method = config.method?.toUpperCase();
+    if (method && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !config.headers['Idempotency-Key']) {
+      if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        config.headers['Idempotency-Key'] = crypto.randomUUID();
+      }
+    }
   }
   return config;
 });
@@ -97,10 +114,15 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    const refreshToken = sessionStorage.getItem(REFRESH_TOKEN_KEY);
+    const refreshToken = sessionStorage.getItem(REFRESH_TOKEN_KEY) || localStorage.getItem(REFRESH_TOKEN_KEY);
     if (!refreshToken) {
       clearTokens();
       window.dispatchEvent(new Event('hrms:session-expired'));
+      return Promise.reject(error);
+    }
+
+    // Standalone or mock developer sessions: do not trigger full session expiration on endpoint 401s
+    if (refreshToken.startsWith('mock-')) {
       return Promise.reject(error);
     }
 

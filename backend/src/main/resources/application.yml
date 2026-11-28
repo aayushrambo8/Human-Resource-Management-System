@@ -1,14 +1,16 @@
 spring:
   application:
     name: hrms-backend
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
   datasource:
     url: ${HRMS_DB_URL:jdbc:postgresql://localhost:5432/hrms}
     username: ${HRMS_DB_USERNAME:hrms}
-    password: ${HRMS_DB_PASSWORD}
+    password: ${HRMS_DB_PASSWORD:local-only-change-me}
   flyway:
     enabled: true
     placeholders:
-      demo_device_token_hash: ${HRMS_DEMO_DEVICE_TOKEN_HASH}
+      demo_device_token_hash: ${HRMS_DEMO_DEVICE_TOKEN_HASH:e76b6359af8cbe298e362c0e179b90c627cef49db0e9aeeca55175ef799c6b37}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -22,12 +24,12 @@ server:
 
 hrms:
   web:
-    allowed-origins: ${HRMS_CORS_ALLOWED_ORIGINS:http://localhost:5173}
+    allowed-origins: ${HRMS_CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000,http://localhost:8080,http://localhost:5173}
   biometric:
     token-header: X-Device-Token
   auth:
-    jwt-secret: ${HRMS_JWT_SECRET}
-    bootstrap-token: ${HRMS_BOOTSTRAP_TOKEN}
+    jwt-secret: ${HRMS_JWT_SECRET:dev-jwt-secret-not-for-production-use-at-all-replace-this-now}
+    bootstrap-token: ${HRMS_BOOTSTRAP_TOKEN:dev-bootstrap-token-not-for-production-use-replace-this-now-ok}
     access-token-seconds: ${HRMS_ACCESS_TOKEN_SECONDS:900}
 
 management:

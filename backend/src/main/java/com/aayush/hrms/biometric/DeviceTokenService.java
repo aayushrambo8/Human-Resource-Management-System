@@ -10,10 +10,12 @@ import org.springframework.stereotype.Service;
 public class DeviceTokenService {
 
     public boolean matches(String providedToken, String expectedHash) {
-        if (providedToken == null || providedToken.isBlank()) {
+        if (providedToken == null || providedToken.isBlank() || expectedHash == null) {
             return false;
         }
-        return hash(providedToken).equalsIgnoreCase(expectedHash);
+        byte[] providedBytes = hash(providedToken).toLowerCase().getBytes(StandardCharsets.UTF_8);
+        byte[] expectedBytes = expectedHash.toLowerCase().getBytes(StandardCharsets.UTF_8);
+        return MessageDigest.isEqual(providedBytes, expectedBytes);
     }
 
     private String hash(String value) {

@@ -102,6 +102,21 @@ describe('request interceptor', () => {
     const config = (await onFulfilled({ headers: {} })) as { headers: Record<string, string> };
     expect(config.headers.Authorization).toBeUndefined();
   });
+
+  it('attaches an Idempotency-Key header to mutating requests (POST/PUT/PATCH/DELETE)', async () => {
+    const onFulfilled = requestInterceptor;
+    const postConfig = (await onFulfilled({ method: 'post', headers: {} })) as {
+      headers: Record<string, string>;
+    };
+    expect(postConfig.headers['Idempotency-Key']).toBeDefined();
+    expect(typeof postConfig.headers['Idempotency-Key']).toBe('string');
+
+    // GET requests should not have an idempotency key
+    const getConfig = (await onFulfilled({ method: 'get', headers: {} })) as {
+      headers: Record<string, string>;
+    };
+    expect(getConfig.headers['Idempotency-Key']).toBeUndefined();
+  });
 });
 
 describe('401 refresh rotation', () => {
