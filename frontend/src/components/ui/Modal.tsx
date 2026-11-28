@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, type ReactNode } from 'react';
-import { motion, AnimatePresence } from '@/lib/motion';
+import { motion, AnimatePresence, transitions } from '@/lib/motion';
 import { Icon } from './Icon';
 
 interface ModalProps {
@@ -74,10 +74,9 @@ export function Modal({ open, onClose, title, description, children, busy = fals
         >
           <motion.div
             ref={dialogRef}
-            initial={{ opacity: 0, scale: 0.95, y: 12 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 8 }}
-            transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0, transition: transitions.snappy }}
+            exit={{ opacity: 0, scale: 0.96, y: 6, transition: transitions.exit }}
             className="modal"
             role="dialog"
             aria-modal="true"

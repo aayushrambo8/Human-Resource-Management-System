@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import LoginPage from '@/app/(auth)/login/page';
 import { renderWithProviders } from '@/test/harness';
 import { BRANDING } from '@/lib/branding';
+import { authApi } from '@/lib/api';
 
 const mockPush = vi.fn();
 const mockRefresh = vi.fn();
@@ -27,75 +28,79 @@ vi.mock('next/link', () => ({
   ),
 }));
 
-describe('LoginPage - Split Screen Layout & Form Box', () => {
+describe('LoginPage - Security, Validation & Layout', () => {
   beforeEach(() => {
     mockPush.mockClear();
     mockRefresh.mockClear();
     mockSearchParams = new URLSearchParams();
+    vi.restoreAllMocks();
     if (typeof localStorage !== 'undefined') {
       localStorage.clear();
     }
   });
 
-  it('renders the organization visual identity on the left and login box on the right', () => {
+  it('renders the organization visual identity, login CTA, and legal links', () => {
     renderWithProviders(<LoginPage />);
 
-    // Left section: Organization visual presentation
     expect(screen.getByRole('region', { name: /institution showcase/i })).toBeInTheDocument();
     expect(screen.getAllByText(new RegExp(BRANDING.name, 'i')).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/Intelligent Workforce Operations/i)).toBeInTheDocument();
     expect(screen.getByAltText(/Birla Institute of Technology Emblem/i)).toHaveAttribute('src', BRANDING.logoUrl);
-    expect(screen.getByText(/Biometric Telemetry/i)).toBeInTheDocument();
 
-    // Right section: Dedicated Login Page & Login Box
     expect(screen.getByRole('region', { name: /user authentication login section/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Sign In to Portal/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/Username or Email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/^Password/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Sign In to Dashboard/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Privacy Policy/i })).toHaveAttribute('href', '/privacy');
+    expect(screen.getByRole('link', { name: /Terms & Conditions/i })).toHaveAttribute('href', '/terms');
   });
 
-  it('allows filling credentials and submitting the form', async () => {
+  it('validates empty fields before submitting', async () => {
     const user = userEvent.setup();
+    const loginSpy = vi.spyOn(authApi, 'login');
     renderWithProviders(<LoginPage />);
 
-    const usernameInput = screen.getByLabelText(/Username or Email/i);
-    const passwordInput = screen.getByLabelText(/^Password/i);
-    const submitBtn = screen.getByRole('button', { name: /Sign In to Dashboard/i });
+    await user.click(screen.getByRole('button', { name: /Sign In to Dashboard/i }));
 
-    await user.type(usernameInput, 'admin@northstar.edu');
-    await user.type(passwordInput, 'Admin@123');
-    await user.click(submitBtn);
+    expect(screen.getByText(/Please enter your institutional email or username/i)).toBeInTheDocument();
+    expect(screen.getByText(/Please enter your password/i)).toBeInTheDocument();
+    expect(loginSpy).not.toHaveBeenCalled();
+  });
+
+  it('blocks automated submissions when honeypot field is filled', async () => {
+    const user = userEvent.setup();
+    const loginSpy = vi.spyOn(authApi, 'login');
+    renderWithProviders(<LoginPage />);
+
+    const honeypot = document.getElementById('company-website') as HTMLInputElement;
+    await user.type(honeypot, 'https://spam-bot.example');
+    await user.click(screen.getByRole('button', { name: /Sign In to Dashboard/i }));
+
+    expect(screen.getByText(/Automated submission blocked/i)).toBeInTheDocument();
+    expect(loginSpy).not.toHaveBeenCalled();
+  });
+
+  it('submits valid credentials and redirects to dashboard', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(authApi, 'login').mockResolvedValue({
+      accessToken: 'jwt-access-token',
+      accessTokenExpiresAt: new Date(Date.now() + 3600_000).toISOString(),
+      refreshToken: 'jwt-refresh-token',
+      refreshTokenExpiresAt: new Date(Date.now() + 86400_000).toISOString(),
+      email: 'faculty@bitmesra.ac.in',
+      roles: ['EMPLOYEE'],
+    });
+
+    renderWithProviders(<LoginPage />);
+
+    await user.type(screen.getByLabelText(/Username or Email/i), 'faculty@bitmesra.ac.in');
+    await user.type(screen.getByLabelText(/^Password/i), 'SecurePass123');
+    await user.click(screen.getByRole('button', { name: /Sign In to Dashboard/i }));
 
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/');
     });
-  });
-
-  it('provides quick demo credential autofill buttons for Admin, HR, and User', async () => {
-    const user = userEvent.setup();
-    renderWithProviders(<LoginPage />);
-
-    const usernameInput = screen.getByLabelText(/Username or Email/i) as HTMLInputElement;
-    const passwordInput = screen.getByLabelText(/^Password/i) as HTMLInputElement;
-
-    // 1. Admin autofill
-    const adminDemoBtn = screen.getByRole('button', { name: /Fill Admin/i });
-    await user.click(adminDemoBtn);
-    expect(usernameInput.value).toBe('admin@northstar.edu');
-    expect(passwordInput.value).toBe('Admin@123');
-
-    // 2. HR autofill
-    const hrDemoBtn = screen.getByRole('button', { name: /Fill HR/i });
-    await user.click(hrDemoBtn);
-    expect(usernameInput.value).toBe('hr@northstar.edu');
-    expect(passwordInput.value).toBe('Hr@123');
-
-    // 3. User autofill
-    const userDemoBtn = screen.getByRole('button', { name: /Fill User/i });
-    await user.click(userDemoBtn);
-    expect(usernameInput.value).toBe('user@northstar.edu');
-    expect(passwordInput.value).toBe('User@123');
   });
 
   it('renders session expired warning when expired parameter is present', () => {
@@ -105,4 +110,3 @@ describe('LoginPage - Split Screen Layout & Form Box', () => {
     expect(screen.getByText(/Your session has expired/i)).toBeInTheDocument();
   });
 });
-

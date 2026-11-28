@@ -1,17 +1,17 @@
 import Image from 'next/image';
-import { BRAND, BRAND_LOGO } from '@/lib/branding';
+import { DEFAULT_BRANDING } from '@/lib/branding';
 
 /**
- * Institution mark: renders the personal logo image when one is configured and
+ * Institution mark: renders the configured logo image when available and
  * falls back to the styled monogram otherwise. Decorative — the adjacent visible
  * wordmark carries the human-readable brand label, and the surrounding link
  * provides the full accessible name.
  */
 export function BrandMark() {
-  if (BRAND_LOGO) {
+  if (DEFAULT_BRANDING.logoUrl) {
     return (
       <Image
-        src={BRAND_LOGO}
+        src={DEFAULT_BRANDING.logoUrl}
         alt=""
         width={36}
         height={36}
@@ -24,7 +24,7 @@ export function BrandMark() {
 
   return (
     <span className="brand-mark" aria-hidden="true">
-      {BRAND.mark}
+      {DEFAULT_BRANDING.markLetter}
     </span>
   );
 }

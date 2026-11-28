@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion, transitions } from '@/lib/motion';
 import { Icon } from '@/components/ui/Icon';
 
 export interface Column<T> {
@@ -8,6 +9,7 @@ export interface Column<T> {
   header: string;
   render?: (item: T, index: number) => React.ReactNode;
   sortable?: boolean;
+  align?: 'left' | 'right';
   className?: string;
 }
 
@@ -176,10 +178,10 @@ export function EnterpriseTable<T>({
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`py-3.5 px-4 sm:px-5 select-none ${col.sortable ? 'cursor-pointer hover:text-[var(--text)]' : ''} ${col.className ?? ''}`}
+                  className={`py-3.5 px-4 sm:px-5 select-none ${col.align === 'right' ? 'text-right' : ''} ${col.sortable ? 'cursor-pointer hover:text-[var(--text)]' : ''} ${col.className ?? ''}`}
                   onClick={() => col.sortable && handleSort(col.key)}
                 >
-                  <div className="flex items-center gap-1.5">
+                  <div className={`flex items-center gap-1.5 ${col.align === 'right' ? 'justify-end' : ''}`}>
                     <span>{col.header}</span>
                     {col.sortable && sortKey === col.key && (
                       <span className="text-[var(--accent-solid)] font-bold">
@@ -194,13 +196,25 @@ export function EnterpriseTable<T>({
           <tbody className="divide-y divide-[var(--border-subtle)]">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={columns.length + 1} className="py-20 text-center">
-                  <div className="flex flex-col items-center justify-center space-y-2">
+                <td colSpan={columns.length + 1} className="py-16 text-center">
+                  <div className="flex flex-col items-center justify-center space-y-2.5">
                     <div className="size-10 rounded-full bg-[var(--surface-alt)] border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)]">
                       <Icon name="search" size={16} />
                     </div>
-                    <p className="text-sm font-semibold text-[var(--text)] font-serif">{emptyTitle}</p>
+                    <p className="text-sm font-semibold text-[var(--text)] font-serif text-balance">{emptyTitle}</p>
                     <p className="text-xs text-[var(--text-muted)] max-w-sm font-serif">{emptyDescription}</p>
+                    {(searchTerm || activeFilter !== 'ALL') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSearchTerm('');
+                          setActiveFilter('ALL');
+                        }}
+                        className="btn btn-secondary text-xs mt-1"
+                      >
+                        Clear active filters
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -209,8 +223,14 @@ export function EnterpriseTable<T>({
                 const id = keyExtractor(item);
                 const isSelected = selectedIds.has(id);
                 return (
-                  <tr
+                  <motion.tr
                     key={id}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      ...transitions.entrance,
+                      delay: Math.min(idx * 0.03, 0.3),
+                    }}
                     className={`transition-colors duration-150 group ${
                       isSelected ? 'bg-[var(--surface-alt)]' : 'hover:bg-[var(--surface-hover)]'
                     }`}
@@ -225,11 +245,16 @@ export function EnterpriseTable<T>({
                       />
                     </td>
                     {columns.map((col) => (
-                      <td key={col.key} className={`py-4.5 px-4 sm:px-5 text-[var(--text)] align-middle ${col.className ?? ''}`}>
+                      <td
+                        key={col.key}
+                        className={`py-4.5 px-4 sm:px-5 text-[var(--text)] align-middle ${
+                          col.align === 'right' ? 'text-right tabular-nums' : ''
+                        } ${col.className ?? ''}`}
+                      >
                         {col.render ? col.render(item, idx) : String((item as Record<string, unknown>)[col.key] ?? '—')}
                       </td>
                     ))}
-                  </tr>
+                  </motion.tr>
                 );
               })
             )}

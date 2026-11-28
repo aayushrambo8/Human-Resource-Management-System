@@ -124,3 +124,14 @@ export function truncateMiddle(text: string | null | undefined, maxLen = 24): st
   return `${base.slice(0, frontChars)}...${base.slice(-backChars)}${ext}`;
 }
 
+/**
+ * Convert straight quotes to typographic curly quotes for natural prose.
+ */
+export function curlyQuotes(text: string): string {
+  return text
+    .replace(/(^|[-\u2014\s(\["])'/g, '$1\u2018')
+    .replace(/'/g, '\u2019')
+    .replace(/(^|[-\u2014\s(\["])"/g, '$1\u201c')
+    .replace(/"/g, '\u201d');
+}
+

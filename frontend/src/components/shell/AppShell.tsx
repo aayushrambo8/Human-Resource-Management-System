@@ -8,7 +8,8 @@ import { useTheme } from '@/lib/theme-provider';
 import { initials } from '@/lib/format';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { useBranding } from '@/lib/branding';
-import { motion, AnimatePresence } from '@/lib/motion';
+import { motion, AnimatePresence, transitions } from '@/lib/motion';
+import { CrossfadeIcon } from '@/components/ui/CrossfadeIcon';
 import { CommandPalette } from '@/components/shell/CommandPalette';
 
 interface NavItem {
@@ -117,7 +118,7 @@ function ThemeModeToggle() {
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      <Icon name={isDark ? 'sun' : 'moon'} size={15} />
+      <CrossfadeIcon name={isDark ? 'sun' : 'moon'} size={15} />
     </button>
   );
 }
@@ -332,10 +333,18 @@ export function AppShell({ children }: { children: ReactNode }) {
                           <Link
                             key={item.href}
                             href={item.href}
-                            className={`floating-nav-item ${active ? 'active' : ''}`}
+                            className={`floating-nav-item relative ${active ? 'active' : ''}`}
                             aria-current={active ? 'page' : undefined}
                             title={sidebarCollapsed ? item.label : undefined}
                           >
+                            {active && (
+                              <motion.span
+                                layoutId="sidebar-active-indicator"
+                                transition={transitions.move}
+                                aria-hidden="true"
+                                className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-[var(--color-primary)]"
+                              />
+                            )}
                             <div className="nav-icon-slot">
                               <Icon name={item.icon} size={16} />
                             </div>

@@ -330,7 +330,11 @@ export default function BrandingSettingsPage() {
           <div className="p-4 rounded-xl bg-slate-950 text-white flex items-center justify-between shadow-inner">
             <div className="flex items-center gap-3">
               <div className="size-10 rounded-xl bg-white p-1 flex items-center justify-center">
-                <img src={formData.logoUrl} alt="" className="size-full object-contain" />
+                <img
+                  src={formData.logoUrl}
+                  alt={`${formData.name || 'Organization'} logo preview`}
+                  className="size-full object-contain"
+                />
               </div>
               <div>
                 <div className="text-sm font-bold">{formData.name}</div>

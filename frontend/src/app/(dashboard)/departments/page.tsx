@@ -13,7 +13,7 @@ import { Modal } from '@/components/ui/Modal';
 import { DepartmentForm } from '@/components/forms/DepartmentForm';
 import { EnterpriseTable, type Column } from '@/components/ui/EnterpriseTable';
 
-export const SAMPLE_DEPARTMENTS_FALLBACK: Department[] = [
+const SAMPLE_DEPARTMENTS_FALLBACK: Department[] = [
   {
     id: 'dept-001',
     companyId: 'comp-01',

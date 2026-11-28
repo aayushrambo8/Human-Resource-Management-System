@@ -127,21 +127,34 @@ export function EmptyState({
   title,
   description,
   icon = 'grid',
+  actionLabel,
+  onAction,
 }: {
   title: string;
   description: string;
   icon?: 'grid' | 'users' | 'calendar' | 'clock' | 'building' | 'fingerprint';
+  actionLabel?: string;
+  onAction?: () => void;
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
+      initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
       className="state-panel"
     >
       <Icon name={icon} size={28} className="state-icon" />
-      <strong>{title}</strong>
-      <p>{description}</p>
+      <strong className="text-balance">{title}</strong>
+      <p className="max-w-md text-left sm:text-center">{description}</p>
+      {actionLabel && onAction && (
+        <button
+          type="button"
+          onClick={onAction}
+          className="btn btn-primary mt-2 text-xs"
+        >
+          {actionLabel}
+        </button>
+      )}
     </motion.div>
   );
 }

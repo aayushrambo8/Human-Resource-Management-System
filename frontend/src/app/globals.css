@@ -36,13 +36,13 @@
   --color-workspace-mat: #F8F5EC; /* Warm Ivory Mat Foundation */
   --color-surface: #FCFAF5; /* Cream White for Smaller Sections/Boxes */
   --color-surface-elevated: #FFFDF9; /* Cream White Elevated */
-  --color-primary: #E9785F;
-  --color-primary-hover: #D9664E;
+  --color-primary: #C2410C;
+  --color-primary-hover: #9A3412;
   --color-secondary: #B77A62;
   --color-accent: #F2C68A;
   --color-supporting: #DDAE9C;
-  --color-text: #303B4B;
-  --color-text-muted: #7D7B79;
+  --color-text: #292524;
+  --color-text-muted: #57534E;
   --color-border: #EFE0D4;
 
   --background-art-url: url("/themes/desert-studio/light.svg");
@@ -444,22 +444,30 @@ nav,
   transform: translateY(-2px);
 }
 
-/* Buttons */
+/* Buttons — text ~half button height, 0.97 press scale, layered shadow */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 36px;
-  padding: 0 16px;
+  height: 38px;
+  padding: 0 18px;
   border-radius: 10px;
   font-size: 13px;
+  line-height: 1.2;
   font-weight: 600;
   cursor: pointer;
   border: 1px solid transparent;
   transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
   text-decoration: none;
   white-space: nowrap;
+}
+
+.btn-lg-cta {
+  height: 50px;
+  padding: 0 28px;
+  font-size: 15px;
+  border-radius: 14px;
 }
 
 .btn:active,
@@ -631,6 +639,101 @@ sub {
 
 h1, h2, h3, h4, .text-balance {
   text-wrap: balance;
+  line-height: 1.18;
+}
+
+.headline-fluid-xl {
+  font-size: clamp(1.75rem, 2.8vw + 0.75rem, 3rem);
+  line-height: 1.14;
+  margin-top: 1.25em;
+  margin-bottom: 0.45em;
+}
+
+.headline-fluid-lg {
+  font-size: clamp(1.25rem, 1.4vw + 0.75rem, 1.75rem);
+  line-height: 1.2;
+  margin-top: 1.15em;
+  margin-bottom: 0.4em;
+}
+
+/* Text-box trim for descender/cap optical centering */
+.text-box-trim {
+  text-box-trim: trim-both;
+  text-box-edge: cap alphabetic;
+}
+
+/* Small caps for acronyms so all-caps don't shout */
+.small-caps {
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.06em;
+}
+
+/* Hyphens for narrow columns */
+.hyphens-auto {
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+
+/* Reserve bold width on hover/active text to prevent row layout shift */
+.reserve-bold {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.reserve-bold::after {
+  content: attr(data-text);
+  height: 0;
+  visibility: hidden;
+  overflow: hidden;
+  user-select: none;
+  pointer-events: none;
+  font-weight: 700;
+}
+
+/* Continuous corners (progressive enhancement) */
+.squircle {
+  corner-shape: squircle;
+}
+
+/* Layered multi-stop shadow (replaces single big blurry shadow) */
+.shadow-layered {
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.05),
+    0 4px 8px -2px rgba(15, 23, 42, 0.06),
+    0 12px 24px -6px rgba(15, 23, 42, 0.08);
+}
+
+/* Safe area insets for notched mobile devices */
+.safe-area-inset {
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+}
+
+/* Stretch moving toggle knob by 12% */
+.knob-stretch {
+  transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.knob-stretch:active {
+  transform: scaleX(1.12) scaleY(0.92);
+}
+
+/* Skeleton shimmer */
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-canvas-secondary) 25%,
+    color-mix(in srgb, var(--color-surface-elevated) 85%, var(--color-border)) 50%,
+    var(--color-canvas-secondary) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.4s ease-in-out infinite;
 }
 
 /* Reduced Motion Accessibility Guardrail */
