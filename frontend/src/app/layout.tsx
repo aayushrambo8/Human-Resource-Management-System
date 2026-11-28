@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Lora, Merriweather } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import { QueryProvider } from '@/lib/query-provider';
 import { ClientAuthProvider } from '@/lib/auth-provider';
@@ -8,13 +8,6 @@ import { CookieConsentBanner } from '@/components/ui/CookieConsentBanner';
 import { ToastProvider } from '@/components/ui/Toast';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
-const lora = Lora({ subsets: ['latin'], variable: '--font-lora', display: 'swap' });
-const merriweather = Merriweather({
-  weight: ['300', '400', '700'],
-  subsets: ['latin'],
-  variable: '--font-merriweather',
-  display: 'swap',
-});
 
 const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://hrms.bitmesra.ac.in').replace(/\/+$/, '');
 
@@ -80,8 +73,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     // suppressHydrationWarning: the theme init script below sets the `dark`
     // class before React hydrates; the mismatch is intentional and benign.
-    <html lang="en" className={`${inter.variable} ${lora.variable} ${merriweather.variable}`} suppressHydrationWarning>
-      <body className={`${lora.className} antialiased`}>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <body className="antialiased font-sans">
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <QueryProvider>
           <ThemeProvider>

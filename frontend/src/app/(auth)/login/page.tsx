@@ -203,7 +203,7 @@ export default function LoginPage() {
             <span>{branding.division} ({branding.shortName})</span>
           </div>
           <div className="font-mono text-[11px] text-slate-300">
-            Enterprise Security Gateway · {branding.version}
+            Aayush Babu Enterprises
           </div>
         </div>
       </section>
